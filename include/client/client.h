@@ -6,7 +6,10 @@ class Client {
 
 	public:
 		Client();
-		void commandToServer();
+		static void* commandToServer(void*);
 		int validateCommand(std::string);
+		static void* dummy(void*);
+		void createConnection();
+
 };
 

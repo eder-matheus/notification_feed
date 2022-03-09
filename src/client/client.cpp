@@ -2,6 +2,7 @@
 #include "../../include/util/definitions.h"
 #include <string>
 #include <iostream>
+#include <time.h>
 
 
 Client::Client() {
@@ -27,16 +28,40 @@ int Client::validateCommand(std::string input) {
 	return 0;
 }
 
-void Client::commandToServer() {
-	
+void* Client::commandToServer(void* args) {
+
+	std::cout << "abri a thread de enviar comandos\n";
 	std::string input;
+	Client* _this = (Client*) args;
 
 	while(true) {
 		std::getline(std::cin, input);
-		if(this -> validateCommand(input) < 0)
+		if(_this -> validateCommand(input) < 0)
 			std::cout << "TO KILL LOOP";
 			//return -1;
 		std::cout << "end of loop\n";
 	}
+
+}
+
+void* Client::dummy(void* args) {
+	std::cout << "abri a thread de receber comandos\n";
+	srand(time(NULL));
+	int i = rand() % 10000000000 + 1;
+	while(true) {
+		if(i < 3)
+			std::cout << "another user message is here!\n";
+		i = rand() % 1000000000 + 1;
+	}
+	return 0;
+}
+
+void Client::createConnection() {
+	pthread_t senderTid;
+	pthread_t dummyTid;
+
+	pthread_create(&senderTid, NULL, commandToServer, (void*) this);
+	pthread_create(&dummyTid, NULL, dummy, (void*) this);
+	pthread_join(senderTid, NULL);
 
 }

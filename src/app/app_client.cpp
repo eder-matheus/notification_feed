@@ -39,7 +39,7 @@ int main (int argc, char* argv[]) {
 
 	Client client;
 
-	client.commandToServer();
+	client.createConnection();
 
 	return 0;
 }
