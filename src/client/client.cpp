@@ -1,5 +1,6 @@
 #include "../../include/client/client.h"
 #include "../../include/util/definitions.h"
+#include "../../include/ui/ui.h"
 #include <string>
 #include <iostream>
 #include <time.h>
@@ -33,12 +34,15 @@ void* Client::commandToServer(void* args) {
 	std::cout << "abri a thread de enviar comandos\n";
 	std::string input;
 	Client* _this = (Client*) args;
+	Ui ui(DEFT);
+	ui.textBlock(MSG, "teste");
 
 	while(true) {
 		std::getline(std::cin, input);
-		if(_this -> validateCommand(input) < 0)
-			std::cout << "TO KILL LOOP";
-			//return -1;
+		if(_this -> validateCommand(input) < 0) {
+			std::cout << "TO KILL LOOP\n";
+			return 0;
+		}
 		std::cout << "end of loop\n";
 	}
 
