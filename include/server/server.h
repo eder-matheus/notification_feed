@@ -17,6 +17,8 @@ private:
 public:
   Server();
   bool loginUser(std::string username);
+  static void* sendNotifications(void *);
+  static void* receiveCommand(void *);
   bool logoffUser(std::string username);
   bool followUser(Follow follow);
   void createConnection();
