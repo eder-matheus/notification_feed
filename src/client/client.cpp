@@ -51,6 +51,7 @@ void *Client::commandToServer(void *args) {
       return 0;
     } else if (type == CmdType::Send) {
       Notification notification(content, _this->username_);
+      notification.print();
       // send notification to server
     } else if (type == CmdType::Follow) {
       Follow follow(_this->username_, content);
@@ -63,12 +64,12 @@ void *Client::commandToServer(void *args) {
 void *Client::receiveFromServer(void *args) {
   std::cout << "abri a thread de receber comandos\n";
   srand(time(NULL));
-  int i = rand() % 10000000000 + 1;
+  int i = rand() % 1000000000000000 + 1;
   while (true) {
     Notification notification; // receive data from server through the UDP sockets
     if (i < 3)
       std::cout << "another user message is here!\n";
-    i = rand() % 1000000000 + 1;
+    i = rand() % 100000000000000 + 1;
   }
   return 0;
 }
