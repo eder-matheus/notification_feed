@@ -1,6 +1,6 @@
-#include "../../include/client/client.h"
-#include "../../include/util/definitions.h"
-#include "../../include/client/ui.h"
+#include "client.h"
+#include "definitions.h"
+#include "ui.h"
 #include <iostream>
 
 bool validateUsername(char *name) {

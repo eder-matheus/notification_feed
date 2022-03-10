@@ -1,7 +1,7 @@
-#include "../../include/client/client.h"
-#include "../../include/util/definitions.h"
-#include "../../include/util/notification.h"
-#include "../../include/client/ui.h"
+#include "client.h"
+#include "definitions.h"
+#include "notification.h"
+#include "ui.h"
 #include <iostream>
 #include <string>
 #include <time.h>
