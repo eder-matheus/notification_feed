@@ -23,5 +23,4 @@ public:
   bool logoffUser(std::string username);
   bool followUser(Follow follow);
   void createConnection();
-  std::map<std::string, std::vector<long int>> getPendingNotifications() { return pending_notifications_; }
 };

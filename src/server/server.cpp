@@ -32,14 +32,18 @@ void* Server::receiveCommand(void *args) {
   //receive enum of command (Follow or Send) from client
   //prepare to receive follow struct or notification object
   //change database and local structure
+  return 0;
 }
 
 void* Server::sendNotifications(void *args) {
+  Server *_this = (Server *)args;
   while(true) {
-    for(auto& [user, notification_ids] : pending_notifications_) {
+    for(auto& notification : _this->pending_notifications_) {
+      auto& user = notification.first;
+      auto& notification_ids = notification.second;
       for(int i = 0; notification_ids.size(); i++) {
-        if(notificationToUser(user, notification_ids[i]))
-		std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
+        if(_this->notificationToUser(user, notification_ids[i]))
+		      std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
       }
     }
   }
