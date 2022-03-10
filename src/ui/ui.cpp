@@ -1,11 +1,23 @@
 #include <string>
 #include <iostream>
+#include <fstream>
 #include "../../include/ui/ui.h"
 
 
-Ui::Ui(FileType) {
-	
+Ui::Ui(FileType use) {
+
+	ui_use = use;	
+
+	switch(ui_use) {
+		case INTRO:
+			ascii_image.open("src/ui/ui_files/ufrgs_logo_ascii.txt", std::ios::in);
+			break;
+	}
+
+	if(ui_use != NONE && !ascii_image.is_open())
+		std::cout << "FAILED TO OPEN UI FILE\n";
 }
+//destructor should close file
 
 void Ui::textBlock(UiType label, std::string message) {
 
@@ -29,10 +41,11 @@ void Ui::textBlock(UiType label, std::string message) {
 	}
 }
 
-void Ui::clientInit() {
-}
+void Ui::asciiArt() {
 
-void Ui::clientExit() {
+	std::string line;
+	while(getline(ascii_image, line))
+		std::cout << line << std::endl;
 }
 
 void Ui::loadingInfo() {
