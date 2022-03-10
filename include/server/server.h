@@ -17,4 +17,6 @@ private:
 public:
   Server();
   bool loginUser(std::string username);
+  static void* sendNotifications(void *);
+  static void* receiveCommand(void *);
 };
