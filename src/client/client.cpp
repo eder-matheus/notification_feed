@@ -1,6 +1,6 @@
-#include "../../include/client/client.h"
-#include "../../include/util/definitions.h"
-#include "../../include/ui/ui.h"
+#include "client.h"
+#include "definitions.h"
+#include "ui.h"
 #include <string>
 #include <iostream>
 #include <time.h>

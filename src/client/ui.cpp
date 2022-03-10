@@ -1,7 +1,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "../../include/ui/ui.h"
+#include "ui.h"
 
 
 Ui::Ui(FileType use) {
@@ -11,6 +11,12 @@ Ui::Ui(FileType use) {
 	switch(ui_use) {
 		case INTRO:
 			ascii_image.open("src/ui/ui_files/ufrgs_logo_ascii.txt", std::ios::in);
+			break;
+		case EXIT:
+			break;
+		case NONE:
+			break;
+		default:
 			break;
 	}
 
@@ -37,6 +43,8 @@ void Ui::textBlock(UiType label, std::string message) {
 		case SUC:
 			std::cout << "SUCCESS\n";
 			std::cout << message << std::endl;
+			break;
+		default:
 			break;
 	}
 }

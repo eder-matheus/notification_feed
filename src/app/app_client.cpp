@@ -1,7 +1,6 @@
-#include "../../include/client/client.h"
-#include "../../include/user/user.h"
-#include "../../include/util/definitions.h"
-#include "../../include/ui/ui.h"
+#include "client.h"
+#include "definitions.h"
+#include "ui.h"
 #include <iostream>
 
 bool validateUsername(char *name) {
@@ -38,7 +37,6 @@ int main (int argc, char* argv[]) {
 	char *gate = argv[3];
 
 	Ui intro(INTRO);
-	User local_user(name);
 	Client client;
 
 	intro.asciiArt();
