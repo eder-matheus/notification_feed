@@ -21,6 +21,17 @@ bool Server::loginUser(std::string username)
   return true;
 }
 
+bool Server::logoffUser(std::string username)
+{
+  if (users_.find(username) != users_.end()) { // user already exists on the db
+    User& user = users_[username];;
+    user.decrementSessions();
+    return true;
+  }
+
+  return false;
+}
+
 bool Server::followUser(Follow follow)
 {
   std::string curr_user = follow.client;

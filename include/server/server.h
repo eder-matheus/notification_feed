@@ -17,5 +17,6 @@ private:
 public:
   Server();
   bool loginUser(std::string username);
+  bool logoffUser(std::string username);
   bool followUser(Follow follow);
 };
