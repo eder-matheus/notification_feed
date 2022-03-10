@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   char *gate = argv[3];
 
   Ui intro(FileType::Intro);
-  Client client;
+  Client client(name);
 
   intro.asciiArt();
 
