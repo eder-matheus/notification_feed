@@ -47,3 +47,38 @@ void* sendNotifications() {
     }
   }
 }
+
+bool Server::logoffUser(std::string username)
+{
+  if (users_.find(username) != users_.end()) { // user already exists on the db
+    User& user = users_[username];;
+    user.decrementSessions();
+    return true;
+  }
+
+  return false;
+}
+
+bool Server::followUser(Follow follow)
+{
+  std::string curr_user = follow.client;
+  std::string user_followed = follow.user_followed;
+
+  if (users_.find(user_followed) != users_.end()) { // user exists on the db
+    User& user = users_[user_followed];
+    user.addFollower(curr_user);
+    return true;
+  }
+
+  // return false 
+  return false;
+}
+
+void Server::createConnection()
+{
+  pthread_t senderTid;
+  pthread_t receiverTid;
+
+  pthread_create(&senderTid, NULL, sendNotifications, (void *)this);
+  pthread_create(&receiverTid, NULL, receiveCommand, (void *)this);
+}
