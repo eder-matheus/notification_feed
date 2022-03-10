@@ -1,2 +1,3 @@
 #define CMD_SEND "SEND"
 #define CMD_FOLLOW "FOLLOW"
+#define MAX_SESSIONS 2

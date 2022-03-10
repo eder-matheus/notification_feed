@@ -9,4 +9,6 @@ private:
 
 public:
   User(std::string username);
+  int getSessions() { return sessions_; }
+  void incrementSessions() { sessions_++; }
 };
