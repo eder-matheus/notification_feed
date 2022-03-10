@@ -2,6 +2,7 @@ project(server)
 
 add_executable(server
 	../app/app_server.cpp
+	../util/notification.cpp
 	server.cpp
 	user.cpp
 )
