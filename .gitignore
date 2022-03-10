@@ -34,3 +34,7 @@
 # Log files
 *.log
 *.tst
+
+# Build dirs
+build/
+debug/
