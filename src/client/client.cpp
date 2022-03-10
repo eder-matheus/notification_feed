@@ -3,6 +3,7 @@
 #include "notification.h"
 #include "ui.h"
 #include <iostream>
+#include <pthread.h>
 #include <string>
 #include <time.h>
 

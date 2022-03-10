@@ -1,5 +1,6 @@
 #include "server.h"
 #include <iostream>
+#include <pthread.h>
 #include <string>
 #include <time.h>
 
