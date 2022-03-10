@@ -1,5 +1,6 @@
 #include "client.h"
 #include "definitions.h"
+#include "notification.h"
 #include "ui.h"
 #include <iostream>
 #include <string>
@@ -7,11 +8,11 @@
 
 Client::Client() {}
 
-CmdType Client::validateCommand(std::string input) {
+CmdType Client::validateCommand(std::string input, std::string& content) {
 
   std::string command = input.substr(0, input.find(' '));
   input.erase(0, input.find(' ') + sizeof(char));
-  std::string message = input;
+  content = input;
 
   CmdType type;
   if (command == "FOLLOW") {
@@ -38,9 +39,18 @@ void *Client::commandToServer(void *args) {
 
   while (true) {
     std::getline(std::cin, input);
-    if (_this->validateCommand(input) == CmdType::Error) {
+    std::string content;
+    CmdType type = _this->validateCommand(input, content);
+
+    if (type == CmdType::Error) {
       std::cout << "TO KILL LOOP\n";
       return 0;
+    } else if (type == CmdType::Send) {
+      Notification notification(content, _this->username_);
+      // send notification to server
+    } else if (type == CmdType::Follow) {
+      Follow follow(_this->username_, content);
+      // send follow to server
     }
     std::cout << "end of loop\n";
   }
