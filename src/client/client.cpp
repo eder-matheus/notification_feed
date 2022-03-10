@@ -64,6 +64,7 @@ void *Client::receiveFromServer(void *args) {
   srand(time(NULL));
   int i = rand() % 10000000000 + 1;
   while (true) {
+    Notification notification; // receive data from server through the UDP sockets
     if (i < 3)
       std::cout << "another user message is here!\n";
     i = rand() % 1000000000 + 1;
