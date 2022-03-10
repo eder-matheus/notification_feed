@@ -16,6 +16,7 @@ public:
   int getLength();
   int getPendingReceivers();
   std::string getMessage();
+  std::string getUsername();
   void decrementPendingReceivers();
   void print();
 };

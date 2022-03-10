@@ -31,6 +31,10 @@ std::string Notification::getMessage() {
   return message_;
 }
 
+std::string Notification::getUsername() {
+  return username_;
+}
+
 void Notification::decrementPendingReceivers() {
   pending_receivers_--;
 }
