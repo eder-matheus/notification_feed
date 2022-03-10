@@ -15,8 +15,16 @@ Notification::Notification(std::string message, std::string username)
   timestamp_ = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 };
 
+void Notification::setId(long int id) {
+  id_ = id;
+}
+
 int Notification::getTimestamp() {
   return timestamp_;
+}
+
+void Notification::setTimestamp(int timestamp) {
+  timestamp_ = timestamp;
 }
 
 int Notification::getLength() {
@@ -27,11 +35,15 @@ int Notification::getPendingReceivers() {
   return pending_receivers_;
 }
 
-std::string Notification::getMessage() {
+void Notification::setPendingReceivers(int pending_receivers) {
+  pending_receivers_ = pending_receivers;
+}
+
+std::string Notification::getMessage() const  {
   return message_;
 }
 
-std::string Notification::getUsername() {
+std::string Notification::getUsername() const  {
   return username_;
 }
 

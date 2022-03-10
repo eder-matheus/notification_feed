@@ -2,7 +2,7 @@
 
 class Notification {
 private:
-  int id_;
+  long int id_;
   int timestamp_;
   int length_;
   int pending_receivers_;
@@ -12,11 +12,15 @@ private:
 public:
   Notification() = default;
   Notification(std::string message, std::string username);
+  int getId();
+  void setId(long int id);
   int getTimestamp();
+  void setTimestamp(int timestamp);
   int getLength();
   int getPendingReceivers();
-  std::string getMessage();
-  std::string getUsername();
+  void setPendingReceivers(int pending_receivers);
+  std::string getMessage() const;
+  std::string getUsername() const;
   void decrementPendingReceivers();
   void print();
 };
