@@ -6,7 +6,10 @@
 #include <string>
 #include <time.h>
 
-Client::Client() {}
+Client::Client(std::string username)
+  : username_(username)
+{
+}
 
 CmdType Client::validateCommand(std::string input, std::string& content) {
 

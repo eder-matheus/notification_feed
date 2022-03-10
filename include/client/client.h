@@ -8,7 +8,8 @@ private:
   std::string username_;
 
 public:
-  Client();
+  Client() = default;
+  Client(std::string username);
   static void *commandToServer(void *);
   CmdType validateCommand(std::string input, std::string& content);
   static void *receiveFromServer(void *);
