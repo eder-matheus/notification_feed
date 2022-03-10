@@ -1,3 +1,7 @@
-#include "../../include/user/user.h"
+#include "user.h"
 
-User::User(char *name) { char *username = name; }
+User::User(std::string name)
+		: username_(name),
+			sessions_(0)
+{
+}
