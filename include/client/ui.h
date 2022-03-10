@@ -23,7 +23,7 @@ private:
 
 public:
   Ui(FileType);
-  void textBlock(UiType, std::string);
+  void textBlock(UiType, std::string, std::string = "0");
   void asciiArt();
   void loadingInfo();
 };

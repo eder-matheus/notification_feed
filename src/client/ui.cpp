@@ -1,4 +1,4 @@
-#include "ui.h"
+#include "../../include/client/ui.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -25,7 +25,7 @@ Ui::Ui(FileType use) {
 }
 // destructor should close file
 
-void Ui::textBlock(UiType label, std::string message, std::string sender = "0") {
+void Ui::textBlock(UiType label, std::string message, std::string sender) {
 
   std::cout << "### ";
   switch (label) {
@@ -48,7 +48,7 @@ void Ui::textBlock(UiType label, std::string message, std::string sender = "0") 
   default:
     break;
   }
-  std::cout << "###" < std::endl;
+  std::cout << "###" << std::endl;
 }
 
 void Ui::asciiArt() {
