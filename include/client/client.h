@@ -1,5 +1,7 @@
 #include <string>
 
+enum class CmdType;
+
 class Client {
 private:
   int id;
@@ -7,7 +9,7 @@ private:
 public:
   Client();
   static void *commandToServer(void *);
-  int validateCommand(std::string);
-  static void *dummy(void *);
+  CmdType validateCommand(std::string);
+  static void *receiveFromServer(void *);
   void createConnection();
 };

@@ -8,18 +8,18 @@ Ui::Ui(FileType use) {
   ui_use = use;
 
   switch (ui_use) {
-  case INTRO:
+  case FileType::Intro:
     ascii_image.open("ui_files/ufrgs_logo_ascii.txt", std::ios::in);
     break;
-  case EXIT:
+  case FileType::Exit:
     break;
-  case NONE:
+  case FileType::None:
     break;
   default:
     break;
   }
 
-  if (ui_use != NONE && !ascii_image.is_open())
+  if (ui_use != FileType::None && !ascii_image.is_open())
     std::cout << "FAILED TO OPEN UI FILE\n";
 }
 // destructor should close file
@@ -27,19 +27,19 @@ Ui::Ui(FileType use) {
 void Ui::textBlock(UiType label, std::string message) {
 
   switch (label) {
-  case MSG:
+  case UiType::Message:
     std::cout << "MESSAGE\n";
     std::cout << message << std::endl;
     break;
-  case WRN:
+  case UiType::Warn:
     std::cout << "WARNING\n";
     std::cout << message << std::endl;
     break;
-  case ERR:
+  case UiType::Error:
     std::cout << "ERROR\n";
     std::cout << message << std::endl;
     break;
-  case SUC:
+  case UiType::Success:
     std::cout << "SUCCESS\n";
     std::cout << message << std::endl;
     break;

@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   char *server = argv[2];
   char *gate = argv[3];
 
-  Ui intro(INTRO);
+  Ui intro(FileType::Intro);
   Client client;
 
   intro.asciiArt();

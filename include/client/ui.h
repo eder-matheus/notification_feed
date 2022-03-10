@@ -1,8 +1,20 @@
 #include <fstream>
 #include <string>
 
-enum UiType { MSG, WRN, ERR, SUC };
-enum FileType { NONE, INTRO, EXIT };
+enum class UiType
+{
+  Message,
+  Warn,
+  Error,
+  Success
+};
+
+enum class FileType
+{
+  None,
+  Intro,
+  Exit
+};
 
 class Ui {
 private:
