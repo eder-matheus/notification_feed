@@ -1,4 +1,5 @@
 #include <chrono>
+#include <iostream>
 #include <string>
 #include "notification.h"
 
@@ -32,4 +33,8 @@ std::string Notification::getMessage() {
 
 void Notification::decrementPendingReceivers() {
   pending_receivers_--;
+}
+
+void Notification::print() {
+  std::cout << username_ << ": " << message_ << " (" << timestamp_ << ")\n";
 }

@@ -17,4 +17,5 @@ public:
   int getPendingReceivers();
   std::string getMessage();
   void decrementPendingReceivers();
+  void print();
 };
