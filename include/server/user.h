@@ -1,9 +1,9 @@
 #include <string>
 
 class User {
-	private:
-		std::string username;
+private:
+  std::string username;
 
-	public:
-		User(char*);
+public:
+  User(char *);
 };

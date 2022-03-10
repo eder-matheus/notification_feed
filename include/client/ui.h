@@ -1,18 +1,17 @@
-#include <string>
 #include <fstream>
+#include <string>
 
-
-enum UiType {MSG, WRN, ERR, SUC};
-enum FileType {NONE, INTRO, EXIT};
+enum UiType { MSG, WRN, ERR, SUC };
+enum FileType { NONE, INTRO, EXIT };
 
 class Ui {
-	private:
-		std::fstream ascii_image;
-		FileType ui_use;
+private:
+  std::fstream ascii_image;
+  FileType ui_use;
 
-	public:
-		Ui(FileType);
-		void textBlock(UiType, std::string);
-		void asciiArt();
-		void loadingInfo();
+public:
+  Ui(FileType);
+  void textBlock(UiType, std::string);
+  void asciiArt();
+  void loadingInfo();
 };
