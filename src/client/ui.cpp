@@ -25,37 +25,39 @@ Ui::Ui(FileType use) {
 }
 // destructor should close file
 
-void Ui::textBlock(UiType label, std::string message, std::string sender) {
+void Ui::textBlock(UiType label, std::string message, std::string sender, int timestamp) {
 
   std::cout << "### ";
   switch (label) {
   case UiType::Message:
-    std::cout << "A NOTIFICATION FROM:\n ** " << sender << std::endl;
-    std::cout << "- " << message << std::endl;
+    std::cout << "A NOTIFICATION FROM:\n";
+    std::cout << "** " << sender << "\n";
+    std::cout << " - " << message << "\n";
+    std::cout << " - (" << timestamp << ")\n";
     break;
   case UiType::Warn:
     std::cout << "WARNING\n";
-    std::cout << message << std::endl;
+    std::cout << message << "\n";
     break;
   case UiType::Error:
     std::cout << "ERROR\n";
-    std::cout << message << std::endl;
+    std::cout << message << "\n";
     break;
   case UiType::Success:
     std::cout << "SUCCESS\n";
-    std::cout << message << std::endl;
+    std::cout << message << "\n";
     break;
   default:
     break;
   }
-  std::cout << "###" << std::endl;
+  std::cout << "###" << "\n";
 }
 
 void Ui::asciiArt() {
 
   std::string line;
   while (getline(ascii_image, line))
-    std::cout << line << std::endl;
+    std::cout << line << "\n";
 }
 
 void Ui::loadingInfo() {}
