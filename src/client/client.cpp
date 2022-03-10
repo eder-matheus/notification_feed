@@ -34,7 +34,7 @@ void* Client::commandToServer(void* args) {
 	std::cout << "abri a thread de enviar comandos\n";
 	std::string input;
 	Client* _this = (Client*) args;
-	Ui ui(DEFT);
+	Ui ui(NONE);
 	ui.textBlock(MSG, "teste");
 
 	while(true) {
