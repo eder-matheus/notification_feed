@@ -22,6 +22,23 @@ bool Server::loginUser(std::string username)
   return true;
 }
 
+void Server::addNotification(const Notification& notification) {
+  // add new notification to the notifications map
+  notifications_[new_notification_id_] = notification;
+  notifications_[new_notification_id_].setId(new_notification_id_);
+
+  // add the notification to the list of pending notifications
+  // for the followers of the user who created the notification
+  const std::vector<std::string>& followers = users_[notification.getUsername()].getFollowers();
+  for (const std::string& follower : followers) {
+    pending_notifications_[follower].push_back(new_notification_id_);
+  }
+  notifications_[new_notification_id_].setPendingReceivers(followers.size());
+
+  // increment new_notification_id_ to have a valid id for the next added notification
+  new_notification_id_++;
+}
+
 int Server::notificationToUser(std::string user, int notification_id) {
   //send notification
   notifications_[notification_id].decrementPendingReceivers();
