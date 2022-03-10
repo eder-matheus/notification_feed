@@ -46,3 +46,12 @@ bool Server::followUser(Follow follow)
   // return false 
   return false;
 }
+
+void Server::createConnection()
+{
+  pthread_t senderTid;
+  pthread_t receiverTid;
+
+  pthread_create(&senderTid, NULL, sendNotifications, (void *)this);
+  pthread_create(&receiverTid, NULL, receiveCommand, (void *)this);
+}
