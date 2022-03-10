@@ -38,3 +38,6 @@
 # Build dirs
 build/
 debug/
+
+# Mac trash files
+*.DS_Store*
