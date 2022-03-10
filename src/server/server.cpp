@@ -21,23 +21,20 @@ bool Server::loginUser(std::string username)
   return true;
 }
 
-int notificationToUser(string user, notification_id) {
-  
+int Server::notificationToUser(std::string user, int notification_id) {
   //send notification
-  notifications_[notification_id].decrementPendingRecievers;
+  notifications_[notification_id].decrementPendingReceivers();
   return 0;
   //else return -1 if could not send
 }
 
-void* receiveCommand() {
-  
+void* Server::receiveCommand(void *args) {
   //receive enum of command (Follow or Send) from client
   //prepare to receive follow struct or notification object
   //change database and local structure
 }
 
-void* sendNotifications() {
-
+void* Server::sendNotifications(void *args) {
   while(true) {
     for(auto& [user, notification_ids] : pending_notifications_) {
       for(int i = 0; notification_ids.size(); i++) {

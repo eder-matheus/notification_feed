@@ -12,14 +12,16 @@ private:
   std::unordered_map<long int, Notification> notifications_;
   // this map stores the notifications that the user (key) have to receive
   // the vector of notification ids should be sorted in crescent way
-  std::map<std::string, std::vector<long int> > pending_notifications_;
+  std::map<std::string, std::vector<long int>> pending_notifications_;
 
 public:
   Server();
   bool loginUser(std::string username);
+  int notificationToUser(std::string user, int notification_id);
   static void* sendNotifications(void *);
   static void* receiveCommand(void *);
   bool logoffUser(std::string username);
   bool followUser(Follow follow);
   void createConnection();
+  std::map<std::string, std::vector<long int>> getPendingNotifications() { return pending_notifications_; }
 };
