@@ -20,3 +20,18 @@ bool Server::loginUser(std::string username)
 
   return true;
 }
+
+bool Server::followUser(Follow follow)
+{
+  std::string curr_user = follow.client;
+  std::string user_followed = follow.user_followed;
+
+  if (users_.find(user_followed) != users_.end()) { // user exists on the db
+    User& user = users_[user_followed];
+    user.addFollower(curr_user);
+    return true;
+  }
+
+  // return false 
+  return false;
+}
