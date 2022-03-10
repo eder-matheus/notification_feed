@@ -9,7 +9,7 @@ Ui::Ui(FileType use) {
 
   switch (ui_use) {
   case INTRO:
-    ascii_image.open("src/ui/ui_files/ufrgs_logo_ascii.txt", std::ios::in);
+    ascii_image.open("ui_files/ufrgs_logo_ascii.txt", std::ios::in);
     break;
   case EXIT:
     break;
