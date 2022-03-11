@@ -1,6 +1,9 @@
-#include "notification.h"
-#include "definitions.h"
-#include "user.h"
+//#include "notification.h"
+//#include "definitions.h"
+//#include "user.h"
+#include "../../include/util/notification.h"
+#include "../../include/util/definitions.h"
+#include "../../include/server/user.h"
 #include <string>
 #include <map>
 #include <unordered_map>
@@ -21,7 +24,7 @@ public:
   Server();
   bool loginUser(std::string username);
   void addNotification(const Notification& notification);
-  int notificationToUser(std::string user, int notification_id);
+  bool notificationToUser(std::string user, int notification_id);
   static void* sendNotifications(void *);
   static void* receiveCommand(void *);
   bool logoffUser(std::string username);

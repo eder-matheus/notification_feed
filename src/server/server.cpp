@@ -1,4 +1,5 @@
-#include "server.h"
+//#include "server.h"
+#include "../../include/server/server.h"
 #include <iostream>
 #include <pthread.h>
 #include <string>
@@ -39,17 +40,30 @@ void Server::addNotification(const Notification& notification) {
   new_notification_id_++;
 }
 
-int Server::notificationToUser(std::string user, int notification_id) {
+bool Server::notificationToUser(std::string user, int notification_id) {
   //send notification
-  notifications_[notification_id].decrementPendingReceivers();
-  return 0;
-  //else return -1 if could not send
+  //receive visualization confirmation
+  //notifications_[notification_id].decrementPendingReceivers();
+  return true;
+  //else return false if could not send
 }
 
 void* Server::receiveCommand(void *args) {
-  //receive enum of command (Follow or Send) from client
-  //prepare to receive follow struct or notification object
-  //change database and local structure
+  
+  CmdType received_command;
+  //receive command from client
+
+  if(received_command == CmdType::Send) {
+    Notification received_notification;
+    //receive notification from client
+    //addNotification(received_notification);
+    //change db
+  } else if(received_command == CmdType::Follow) {
+    Follow follow("ed", "er");
+    //receive follow from client
+    //followUser(follow);
+    //change db
+  }
   return 0;
 }
 
@@ -60,7 +74,7 @@ void* Server::sendNotifications(void *args) {
       auto& user = notification.first;
       auto& notification_ids = notification.second;
       for(int i = 0; notification_ids.size(); i++) {
-        if(_this->notificationToUser(user, notification_ids[i]))
+        if(!_this->notificationToUser(user, notification_ids[i]))
 		      std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
       }
     }
