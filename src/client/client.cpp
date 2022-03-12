@@ -78,25 +78,29 @@ void *Client::commandToServer(void *args) {
       length = sizeof(struct sockaddr_in);
 
       memset(confirmation_packet, 0, BUFFER_SIZE);
+      std::cout << confirmation_packet << '\n';
       n = recvfrom(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
                    (struct sockaddr *) &_this->from_, &length);
       if (n < 0)
         std::cout << "\nfailed to receive\n";
-     
-      std::cout << "oi\n";
-      std::cout << confirmation_packet;
-      std::cout << "tchau\n";
+
       received_packet_data = decodificatePackage(confirmation_packet);
-      if (received_packet_data[1] == CMD_OK)
+
+      if (received_packet_data.empty()) {
+        if (counter == 10000000000) {
+	  server_answered = true;
+	  blocked = true;
+	}
+      }
+      else if (received_packet_data[0] == CMD_OK) {
+	std::cout << "bazinga\n";
         server_answered = true;
-      else if (received_packet_data[1] == CMD_FAIL) {
+      }
+      else if (received_packet_data[0] == CMD_FAIL) {
         server_answered = true;
         blocked = true;
       }
-      else if (counter == 1000000000) {
-        server_answered = true;
-        blocked = true;
-      }
+      
       counter++;
     }
   }
