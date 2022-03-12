@@ -3,6 +3,11 @@
 #include <pthread.h>
 #include <string>
 #include <time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 Server::Server() {}
 
@@ -40,28 +45,52 @@ void Server::addNotification(const Notification& notification) {
 }
 
 bool Server::notificationToUser(std::string user, int notification_id) {
-  //send notification
+  // send to client
+  int n;
+  char buf[BUFFER_SIZE];
+  struct sockaddr_in client_address; // get client address from map
+  n = sendto(socket_, buf, BUFFER_SIZE, 0,(struct sockaddr *) &client_address, sizeof(struct sockaddr));
+  if (n  < 0) 
+    printf("[ERROR] Cannot send to client.");
+
   //receive visualization confirmation
-  //notifications_[notification_id].decrementPendingReceivers();
+
+  notifications_[notification_id].decrementPendingReceivers();
+  
   return true;
   //else return false if could not send
 }
 
 void* Server::receiveCommand(void *args) {
-  
-  CmdType received_command;
-  //receive command from client
+  Server *_this = (Server *)args;
+  int n;
+  char buf[BUFFER_SIZE];
+  while (1) {
+    // receive from client
+    n = recvfrom(_this->socket_, buf, BUFFER_SIZE, 0, (struct sockaddr *) &(_this->client_address_), &(_this->client_length_));
+    if (n < 0) 
+      printf("[ERROR] Cannot receive from client.");
+    printf("Received a datagram: %s\n", buf);
+    
+    // send to cliente
+    n = sendto(_this->socket_, "Got your message\n", BUFFER_SIZE, 0,(struct sockaddr *) &(_this->client_address_), sizeof(struct sockaddr));
+    if (n  < 0) 
+      printf("[ERROR] Cannot send to client.");
 
-  if(received_command == CmdType::Send) {
-    Notification received_notification;
-    //receive notification from client
-    //addNotification(received_notification);
-    //change db
-  } else if(received_command == CmdType::Follow) {
-    Follow follow("ed", "er");
-    //receive follow from client
-    //followUser(follow);
-    //change db
+    CmdType received_command;
+    //receive command from client
+
+    if(received_command == CmdType::Send) {
+      Notification received_notification;
+      //receive notification from client
+      //addNotification(received_notification);
+      //change db
+    } else if(received_command == CmdType::Follow) {
+      Follow follow("ed", "er");
+      //receive follow from client
+      //followUser(follow);
+      //change db
+    }
   }
   return 0;
 }
@@ -74,7 +103,7 @@ void* Server::sendNotifications(void *args) {
       auto& notification_ids = notification.second;
       for(int i = 0; notification_ids.size(); i++) {
         if(!_this->notificationToUser(user, notification_ids[i]))
-		      std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
+          std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
       }
     }
   }
@@ -107,10 +136,49 @@ bool Server::followUser(Follow follow)
 }
 
 void Server::createConnection()
-{
+{   
+  if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1)  {
+    printf("[ERROR] Cannot open socket.");
+    exit(1);
+  }
+
+  server_address_.sin_family = AF_INET;
+  server_address_.sin_port = htons(PORT);
+  server_address_.sin_addr.s_addr = INADDR_ANY;
+  bzero(&(server_address_.sin_zero), 8);    
+   
+  if (bind(socket_, (struct sockaddr *) &server_address_, sizeof(struct sockaddr)) < 0) 
+    printf("[ERROR] Cannot perform binding.");
+  
+  client_length_ = sizeof(struct sockaddr_in);
+
   pthread_t senderTid;
   pthread_t receiverTid;
 
-  pthread_create(&senderTid, NULL, sendNotifications, (void *)this);
   pthread_create(&receiverTid, NULL, receiveCommand, (void *)this);
+  pthread_create(&senderTid, NULL, sendNotifications, (void *)this);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
