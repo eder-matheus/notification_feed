@@ -4,6 +4,7 @@ enum class CmdType
 {
   Send,
   Follow,
+  Login,
   Error
 };
 
