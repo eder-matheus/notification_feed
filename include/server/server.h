@@ -31,11 +31,11 @@ private:
 public:
   Server();
   bool loginUser(std::string username);
+  bool logoffUser(std::string username);
+  bool followUser(Follow follow);
   void addNotification(const Notification &notification);
   bool notificationToUser(std::string user, int notification_id);
   static void *sendNotifications(void *);
   static void *receiveCommand(void *);
-  bool logoffUser(std::string username);
-  bool followUser(Follow follow);
   void createConnection();
 };

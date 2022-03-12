@@ -26,6 +26,31 @@ bool Server::loginUser(std::string username) {
   return true;
 }
 
+bool Server::logoffUser(std::string username) {
+  if (users_.find(username) != users_.end()) { // user already exists on the db
+    User &user = users_[username];
+    ;
+    user.decrementSessions();
+    return true;
+  }
+
+  return false;
+}
+
+bool Server::followUser(Follow follow) {
+  std::string curr_user = follow.client;
+  std::string user_followed = follow.user_followed;
+
+  if (users_.find(user_followed) != users_.end()) { // user exists on the db
+    User &user = users_[user_followed];
+    user.addFollower(curr_user);
+    return true;
+  }
+
+  // return false
+  return false;
+}
+
 void Server::addNotification(const Notification &notification) {
   // add new notification to the notifications map
   notifications_[new_notification_id_] = notification;
@@ -46,11 +71,13 @@ void Server::addNotification(const Notification &notification) {
 }
 
 bool Server::notificationToUser(std::string user, int notification_id) {
+  const Notification& notification = notifications_[notification_id];
+
   // send to client
   int n;
-  char buf[BUFFER_SIZE];
+  char message[BUFFER_SIZE]; // convert notification to string
   struct sockaddr_in client_address; // get client address from map
-  n = sendto(socket_, buf, BUFFER_SIZE, 0, (struct sockaddr *)&client_address,
+  n = sendto(socket_, message, BUFFER_SIZE, 0, (struct sockaddr *)&client_address,
              sizeof(struct sockaddr));
   if (n < 0)
     printf("[ERROR] Cannot send to client.");
@@ -113,31 +140,6 @@ void *Server::sendNotifications(void *args) {
       }
     }
   }
-}
-
-bool Server::logoffUser(std::string username) {
-  if (users_.find(username) != users_.end()) { // user already exists on the db
-    User &user = users_[username];
-    ;
-    user.decrementSessions();
-    return true;
-  }
-
-  return false;
-}
-
-bool Server::followUser(Follow follow) {
-  std::string curr_user = follow.client;
-  std::string user_followed = follow.user_followed;
-
-  if (users_.find(user_followed) != users_.end()) { // user exists on the db
-    User &user = users_[user_followed];
-    user.addFollower(curr_user);
-    return true;
-  }
-
-  // return false
-  return false;
 }
 
 void Server::createConnection() {
