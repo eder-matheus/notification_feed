@@ -3,7 +3,6 @@
 #include <string>
 #include "notification.h"
 
-
 Notification::Notification(std::string message, std::string username)
   : id_(-1),
     length_(message.size()),
@@ -15,11 +14,21 @@ Notification::Notification(std::string message, std::string username)
   timestamp_ = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 };
 
+Notification::Notification(std::string message, int timestamp, std::string username)
+  : id_(-1),
+    timestamp_(timestamp),
+    length_(message.size()),
+    pending_receivers_(-1),
+    message_(message),
+    username_(username)
+{
+};
+
 void Notification::setId(long int id) {
   id_ = id;
 }
 
-int Notification::getTimestamp() {
+int Notification::getTimestamp() const {
   return timestamp_;
 }
 
