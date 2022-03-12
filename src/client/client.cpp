@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <signal.h>
 #include <string>
 #include <strings.h>
 #include <sys/socket.h>
@@ -16,6 +17,16 @@
 #include <time.h>
 
 using namespace std::chrono;
+
+// global var to check ctrl+c
+bool _interruption_ = false;
+
+void Client::sigintHandler(int sig_num)
+{
+  signal(SIGINT, sigintHandler);
+  _interruption_ = true;
+  std::cout << "Press ENTER to complete logoff\n";
+}
 
 Client::Client(std::string username)
     : username_(username), ready_to_receive_(false) {}
@@ -74,9 +85,10 @@ void *Client::commandToServer(void *args) {
   Ui ui(FileType::None);
   ui.textBlock(UiType::Message, "teste");
 
+  signal(SIGINT, sigintHandler);
   while (true) {
     std::getline(std::cin, input);
-    if (std::cin.eof()) {
+    if (std::cin.eof() || _interruption_) {
       input = "LOGOFF " + _this->username_;
     }
     std::string content;

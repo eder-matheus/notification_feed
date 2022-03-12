@@ -18,6 +18,7 @@ private:
   struct hostent *server_;
 
 public:
+  static void sigintHandler(int sig_num);
   Client() = default;
   Client(std::string username);
   static void *commandToServer(void *);
