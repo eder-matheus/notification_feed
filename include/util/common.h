@@ -4,6 +4,8 @@
 #define MAX_SESSIONS 2
 #define PORT 4000
 #define BUFFER_SIZE 200
+#define C_BUFFER_SIZE 17
+#define CONFIRMATION_STRING "got your packet\n"
 
 enum class CmdType { Send, Follow, Login, Receive, Logoff, Error };
 

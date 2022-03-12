@@ -23,5 +23,5 @@ public:
   static void *commandToServer(void *);
   CmdType validateCommand(std::string input, std::string &content);
   static void *receiveFromServer(void *);
-  void createConnection(char *, char *);
+  void createConnection(char *, std::string);
 };
