@@ -30,7 +30,7 @@ private:
   // attributes for server data
   int socket_;
   socklen_t client_length_;
-  struct sockaddr_in server_address_, client_address_;
+  struct sockaddr_in server_address_;
 
   // aux functions
   bool isLogged(const std::string &username);

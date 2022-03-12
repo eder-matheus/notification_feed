@@ -79,11 +79,11 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
 
   // send to client
   int n;
-  char message[BUFFER_SIZE]; // convert notification to string
+  char package[BUFFER_SIZE]; // convert notification to string
   std::vector<struct sockaddr_in>
-      client_address; // get client addresses from map
-  for (struct sockaddr_in &addr : client_address) {
-    n = sendto(socket_, message, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
+      client_addresses; // get client addresses from map
+  for (struct sockaddr_in &addr : client_addresses) {
+    n = sendto(socket_, package, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
                sizeof(struct sockaddr));
     if (n < 0)
       printf("[ERROR] Cannot send to client.");
@@ -97,20 +97,21 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
 
 void *Server::receiveCommand(void *args) {
   Server *_this = (Server *)args;
+  struct sockaddr_in client_address;
   int n;
-  char message[BUFFER_SIZE];
+  char package[BUFFER_SIZE];
   while (1) {
     // receive from client
-    n = recvfrom(_this->socket_, message, BUFFER_SIZE, 0,
-                 (struct sockaddr *)&(_this->client_address_),
+    n = recvfrom(_this->socket_, package, BUFFER_SIZE, 0,
+                 (struct sockaddr *)&(client_address),
                  &(_this->client_length_));
     if (n < 0)
       printf("[ERROR] Cannot receive from client.");
-    printf("Received a datagram: %s\n", message);
+    printf("Received a datagram: %s\n", package);
 
     // send to cliente
-    n = sendto(_this->socket_, "Got your message\n", BUFFER_SIZE, 0,
-               (struct sockaddr *)&(_this->client_address_),
+    n = sendto(_this->socket_, "Got your package\n", BUFFER_SIZE, 0,
+               (struct sockaddr *)&(client_address),
                sizeof(struct sockaddr));
     if (n < 0)
       printf("[ERROR] Cannot send to client.");
@@ -120,20 +121,38 @@ void *Server::receiveCommand(void *args) {
 
     if (received_command == CmdType::Send) {
       Notification received_notification; // use decode to get Notification from
-                                          // the received message
+                                          // the received package
       // receive notification from client
       _this->addNotification(received_notification);
       // update db
     } else if (received_command == CmdType::Follow) {
       // receive follow from client
-      Follow follow; // use decode to get Follow from the received message
-      _this->followUser(follow);
+      Follow follow; // use decode to get Follow from the received package
+      bool follow_ok = _this->followUser(follow);
+      if (follow_ok) {
+        n = sendto(_this->socket_, "Successfully followed.\n", 25, 0,
+                   (struct sockaddr *)&(client_address),
+                   sizeof(struct sockaddr));
+      } else {
+        n = sendto(_this->socket_, "Failed to follow.\n", 25, 0,
+                   (struct sockaddr *)&(client_address),
+                   sizeof(struct sockaddr));
+      }
       // change db
     } else if (received_command == CmdType::Login) {
-      std::string username; // get username from the received message
-      _this->loginUser(username);
+      std::string username; // get username from the received package
+      bool login_ok = _this->loginUser(username);
+      if (login_ok) {
+        n = sendto(_this->socket_, "Successfully logged.\n", 25, 0,
+                   (struct sockaddr *)&(client_address),
+                   sizeof(struct sockaddr));
+      } else {
+        n = sendto(_this->socket_, "Failed to log.\n", 25, 0,
+                   (struct sockaddr *)&(client_address),
+                   sizeof(struct sockaddr));
+      }
     } else {                // CmdType::Logoff
-      std::string username; // get username from the received message
+      std::string username; // get username from the received package
       _this->logoffUser(username);
       _this->logged_users_[username].clear();
     }
