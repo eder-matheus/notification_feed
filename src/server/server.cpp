@@ -11,7 +11,7 @@
 
 Server::Server() {}
 
-bool Server::isLogged(const std::string& username) {
+bool Server::isLogged(const std::string &username) {
   return logged_users_.find(username) != logged_users_.end();
 }
 
@@ -33,8 +33,8 @@ bool Server::loginUser(std::string username) {
 bool Server::logoffUser(std::string username) {
   if (users_.find(username) != users_.end()) { // user already exists on the db
     User &user = users_[username];
-    ;
     user.decrementSessions();
+
     return true;
   }
 
@@ -74,14 +74,15 @@ void Server::addNotification(const Notification &notification) {
   new_notification_id_++;
 }
 
-bool Server::notificationToUser(const std::string& user, int notification_id) {
-  const Notification& notification = notifications_[notification_id];
+bool Server::notificationToUser(const std::string &user, int notification_id) {
+  const Notification &notification = notifications_[notification_id];
 
   // send to client
   int n;
   char message[BUFFER_SIZE]; // convert notification to string
-  std::vector<struct sockaddr_in> client_address; // get client addresses from map
-  for (struct sockaddr_in& addr : client_address) {
+  std::vector<struct sockaddr_in>
+      client_address; // get client addresses from map
+  for (struct sockaddr_in &addr : client_address) {
     n = sendto(socket_, message, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
                sizeof(struct sockaddr));
     if (n < 0)
@@ -118,7 +119,8 @@ void *Server::receiveCommand(void *args) {
     // receive command from client
 
     if (received_command == CmdType::Send) {
-      Notification received_notification; // use decode to get Notification from the received message
+      Notification received_notification; // use decode to get Notification from
+                                          // the received message
       // receive notification from client
       _this->addNotification(received_notification);
       // update db
@@ -127,6 +129,13 @@ void *Server::receiveCommand(void *args) {
       Follow follow; // use decode to get Follow from the received message
       _this->followUser(follow);
       // change db
+    } else if (received_command == CmdType::Login) {
+      std::string username; // get username from the received message
+      _this->loginUser(username);
+    } else {                // CmdType::Logoff
+      std::string username; // get username from the received message
+      _this->logoffUser(username);
+      _this->logged_users_[username].clear();
     }
   }
   return 0;

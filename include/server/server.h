@@ -24,7 +24,8 @@ private:
   long int new_notification_id_;
   // map that stores the logged users
   // mapping the users with the addresses that are used by them
-  std::unordered_map<std::string, std::vector<struct sockaddr_in>> logged_users_;
+  std::unordered_map<std::string, std::vector<struct sockaddr_in>>
+      logged_users_;
 
   // attributes for server data
   int socket_;
@@ -32,7 +33,7 @@ private:
   struct sockaddr_in server_address_, client_address_;
 
   // aux functions
-  bool isLogged(const std::string& username);
+  bool isLogged(const std::string &username);
 
 public:
   Server();
@@ -40,7 +41,7 @@ public:
   bool logoffUser(std::string username);
   bool followUser(Follow follow);
   void addNotification(const Notification &notification);
-  bool notificationToUser(const std::string& user, int notification_id);
+  bool notificationToUser(const std::string &user, int notification_id);
   static void *sendNotifications(void *);
   static void *receiveCommand(void *);
   void createConnection();
