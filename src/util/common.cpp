@@ -22,8 +22,6 @@ std::vector<std::string> decodificatePackage(char *package) {
       broken_package.push_back(data);
       full_package.erase(0, full_package.find(' ') + sizeof(char));
     } else {
-      data = full_package.substr(0, '\n');
-      broken_package.push_back(data);
       decoded = true;
     }
   }
@@ -41,7 +39,7 @@ void codificatePackage(char *package, CmdType type, std::string information,
   time_string.append(" ");
 
   std::string raw_user = user.substr(0, user.find('\n'));
-  raw_user.append("\n");
+  raw_user.append(" ");
 
   if (type == CmdType::Send) {
     std::strcpy(package, "send ");
