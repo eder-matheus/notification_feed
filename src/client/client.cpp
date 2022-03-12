@@ -2,6 +2,7 @@
 #include "common.h"
 #include "notification.h"
 #include "ui.h"
+#include <chrono>
 #include <iostream>
 #include <pthread.h>
 #include <string>
@@ -13,6 +14,8 @@
 #include <netdb.h>
 #include <cstring>
 #include <strings.h>
+
+using namespace std::chrono;
 
 Client::Client(std::string username)
   : username_(username),
@@ -46,12 +49,12 @@ void *Client::commandToServer(void *args) {
   std::cout << "abri a thread de enviar comandos\n";
   std::string input;
   Client *_this = (Client *)args;
-  char package[BUFFER_SIZE];
-  CmdType login = CmdType::Login;
+  char packet[BUFFER_SIZE];
+  CmdType type = CmdType::Login;
 
-  codificatePackage(package, login, _this->username_);
+  codificatePackage(packet, type, _this->username_);
 
-  int n = sendto(_this->socket_, package, strlen(package), 0, (const struct sockaddr *) &_this->server_address_, sizeof(struct sockaddr_in));
+  int n = sendto(_this->socket_, packet, strlen(packet), 0, (const struct sockaddr *) &_this->server_address_, sizeof(struct sockaddr_in));
   if (n < 0)
     std::cout << "ERRORR\n";
 
@@ -61,18 +64,18 @@ void *Client::commandToServer(void *args) {
   while (true) {
     std::getline(std::cin, input);
     std::string content;
-    CmdType type = _this->validateCommand(input, content);
+    type = _this->validateCommand(input, content);
 
     if (type == CmdType::Error) {
       std::cout << "TO KILL LOOP\n";
       return 0;
-    } else if (type == CmdType::Send) {
-      Notification notification(content, _this->username_);
-      notification.print();
-      // send notification to server
-    } else if (type == CmdType::Follow) {
-      Follow follow(_this->username_, content);
-      // send follow to server
+    } else {
+      // send packet to server
+      int timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+      codificatePackage(packet, type, content, timestamp, _this->username_);
+      n = sendto(_this->socket_, packet, strlen(packet), 0, (const struct sockaddr *) &_this->server_address_, sizeof(struct sockaddr_in));
+      if (n < 0)
+        std::cout << "ERRORR\n";
     }
     std::cout << "end of loop\n";
   }
@@ -94,7 +97,7 @@ void *Client::receiveFromServer(void *args) {
 
 void Client::createConnection(char* server, char* gate) {
   pthread_t senderTid;
-  pthread_t dummyTid;
+  pthread_t receiverTid;
   
   server_ = gethostbyname(server);
   if(server == NULL) {
@@ -108,7 +111,7 @@ void Client::createConnection(char* server, char* gate) {
     bzero(&(server_address_.sin_zero), 8);
 
     pthread_create(&senderTid, NULL, commandToServer, (void *)this);
-    pthread_create(&dummyTid, NULL, receiveFromServer, (void *)this);
+    pthread_create(&receiverTid, NULL, receiveFromServer, (void *)this);
     pthread_join(senderTid, NULL);
   }
 }
