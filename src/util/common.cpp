@@ -53,6 +53,9 @@ void codificatePackage(char* package, CmdType type, std::string information, int
      std::strcpy(package, raw_information.c_str());
      std::strcat(package, time_string.c_str());
      std::strcat(package, raw_user.c_str());
+   } else if (type == CmdType::Logoff) {
+     std::strcpy(package, "logoff ");
+     std::strcat(package, raw_information.c_str());
    }
 
 }	
