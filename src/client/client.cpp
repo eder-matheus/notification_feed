@@ -48,8 +48,9 @@ void *Client::commandToServer(void *args) {
 
   std::string input;
   Client *_this = (Client *)args;
-  char packet[BUFFER_SIZE];
+  char packet[BUFFER_SIZE], confirmation_packet[BUFFER_SIZE];
   CmdType type = CmdType::Login;
+  unsigned int length = 0;  
 
   codificatePackage(packet, type, _this->username_);
 
@@ -57,7 +58,16 @@ void *Client::commandToServer(void *args) {
                  (const struct sockaddr *)&_this->server_address_,
                  sizeof(struct sockaddr_in));
   if (n < 0)
-    std::cout << "ERRORR\n";
+    std::cout << "\nfailed to send login\n";
+  
+  length = sizeof(struct sockaddr_in);
+ 
+  n = recvfrom(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
+	       (struct sockaddr *) &_this->from_, &length);
+  if (n < 0)
+    std::cout << "\nfailed to receive\n";
+  
+  std::cout << confirmation_packet;
 
   _this->ready_to_receive_ = true;
 
@@ -85,7 +95,7 @@ void *Client::commandToServer(void *args) {
                  (const struct sockaddr *)&_this->server_address_,
                  sizeof(struct sockaddr_in));
       if (n < 0)
-        std::cout << "ERRORR\n";
+        std::cout << "\nfailed to send cmd\n";
 
       // need to add a check for the return of the server
       if (type == CmdType::Logoff) {
@@ -112,18 +122,18 @@ void *Client::receiveFromServer(void *args) {
   return 0;
 }
 
-void Client::createConnection(char *server, char *gate) {
+void Client::createConnection(char *server, std::string gate) {
   pthread_t senderTid;
   pthread_t receiverTid;
 
   server_ = gethostbyname(server);
   if (server == NULL) {
-    std::cout << "ERROR, host does not exist\n";
+    std::cout << "\nhost does not exist\n";
   } else {
     if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-      std::cout << "ERROUU\n";
+      std::cout << "\nfailed to create socket\n";
     server_address_.sin_family = AF_INET;
-    server_address_.sin_port = htons(PORT);
+    server_address_.sin_port = htons(std::stoi(gate));
     server_address_.sin_addr = *((struct in_addr *)server_->h_addr);
     bzero(&(server_address_.sin_zero), 8);
 
