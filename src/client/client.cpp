@@ -60,28 +60,48 @@ void *Client::commandToServer(void *args) {
   std::string input;
   Client *_this = (Client *)args;
   char packet[BUFFER_SIZE], confirmation_packet[BUFFER_SIZE];
-  CmdType type = CmdType::Login;
+  CmdType type;
   unsigned int length = 0;  
+  bool server_answered = false, blocked = false;
+  int n = 0, counter = 0;
+  std::vector<std::string> received_packet_data;
 
-  codificatePackage(packet, type, _this->username_);
+  codificatePackage(packet, CmdType::Login, _this->username_);
 
-  int n = sendto(_this->socket_, packet, strlen(packet), 0,
-                 (const struct sockaddr *)&_this->server_address_,
-                 sizeof(struct sockaddr_in));
-  if (n < 0)
-    std::cout << "\nfailed to send login\n";
-  
-  length = sizeof(struct sockaddr_in);
- 
-  n = recvfrom(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
-	       (struct sockaddr *) &_this->from_, &length);
-  if (n < 0)
-    std::cout << "\nfailed to receive\n";
-  
-  std::cout << confirmation_packet;
+  while(!server_answered) {
+    n = sendto(_this->socket_, packet, strlen(packet), 0,
+                   (const struct sockaddr *)&_this->server_address_,
+                   sizeof(struct sockaddr_in));
+    if (n < 0)
+      std::cout << "\nfailed to send login\n";
+    else {
+      length = sizeof(struct sockaddr_in);
 
+      memset(confirmation_packet, 0, BUFFER_SIZE);
+      n = recvfrom(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
+                   (struct sockaddr *) &_this->from_, &length);
+      if (n < 0)
+        std::cout << "\nfailed to receive\n";
+     
+      std::cout << "oi\n";
+      std::cout << confirmation_packet;
+      std::cout << "tchau\n";
+      received_packet_data = decodificatePackage(confirmation_packet);
+      if (received_packet_data[1] == CMD_OK)
+        server_answered = true;
+      else if (received_packet_data[1] == CMD_FAIL) {
+        server_answered = true;
+        blocked = true;
+      }
+      else if (counter == 1000000000) {
+        server_answered = true;
+        blocked = true;
+      }
+      counter++;
+    }
+  }
   _this->ready_to_receive_ = true;
-
+  
   Ui ui(FileType::None);
   ui.textBlock(UiType::Message, "teste");
 
@@ -90,6 +110,9 @@ void *Client::commandToServer(void *args) {
     std::getline(std::cin, input);
     if (std::cin.eof() || _interruption_) {
       input = "LOGOFF " + _this->username_;
+    }
+    if (blocked == true) {
+      type = CmdType::Error;
     }
     std::string content;
     type = _this->validateCommand(input, content);
