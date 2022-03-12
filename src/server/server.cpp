@@ -124,16 +124,19 @@ void *Server::receiveCommand(void *args) {
     if (n < 0)
       printf("[ERROR] Cannot send to client.");
 
-    CmdType received_command;
+    std::vector<std::string> decoded_package = decodificatePackage(package);
+    std::string received_command = decoded_package[0];
     // receive command from client
 
-    if (received_command == CmdType::Send) {
-      Notification received_notification; // use decode to get Notification from
-                                          // the received package
-      // receive notification from client
+    if (received_command == "send") {
+      std::string message = decoded_package[1];
+      int timestamp = std::stoi(decoded_package[2]);
+      std::string username = decoded_package[3];
+      
+      Notification received_notification(message, timestamp, username);
       _this->addNotification(received_notification);
       // update db
-    } else if (received_command == CmdType::Follow) {
+    } else if (received_command == "follow") {
       // receive follow from client
       Follow follow; // use decode to get Follow from the received package
       bool follow_ok = _this->followUser(follow);
@@ -147,7 +150,7 @@ void *Server::receiveCommand(void *args) {
                    sizeof(struct sockaddr));
       }
       // change db
-    } else if (received_command == CmdType::Login) {
+    } else if (received_command == "login") {
       std::string username; // get username from the received package
       bool login_ok = _this->loginUser(username);
       if (login_ok) {
