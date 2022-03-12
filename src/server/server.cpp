@@ -70,24 +70,24 @@ void Server::addNotification(const Notification &notification) {
   new_notification_id_++;
 }
 
-bool Server::notificationToUser(std::string user, int notification_id) {
+bool Server::notificationToUser(const std::string& user, int notification_id) {
   const Notification& notification = notifications_[notification_id];
 
   // send to client
   int n;
   char message[BUFFER_SIZE]; // convert notification to string
-  struct sockaddr_in client_address; // get client address from map
-  n = sendto(socket_, message, BUFFER_SIZE, 0, (struct sockaddr *)&client_address,
-             sizeof(struct sockaddr));
-  if (n < 0)
-    printf("[ERROR] Cannot send to client.");
-
-  // receive visualization confirmation
+  std::vector<struct sockaddr_in> client_address; // get client addresses from map
+  for (struct sockaddr_in& addr : client_address) {
+    n = sendto(socket_, message, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
+               sizeof(struct sockaddr));
+    if (n < 0)
+      printf("[ERROR] Cannot send to client.");
+    // receive visualization confirmation
+  }
 
   notifications_[notification_id].decrementPendingReceivers();
 
   return true;
-  // else return false if could not send
 }
 
 void *Server::receiveCommand(void *args) {
