@@ -4,7 +4,6 @@
 #include <iostream>
 
 bool validateUsername(char *name) {
-
   std::string username(name);
 
   int num_of_chars = username.length();
@@ -21,7 +20,6 @@ bool validateUsername(char *name) {
 }
 
 int main(int argc, char *argv[]) {
-
   if (argc < 4) {
     std::cout << "missing username, server or gate\n";
     return -1;

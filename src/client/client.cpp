@@ -33,6 +33,9 @@ CmdType Client::validateCommand(std::string input, std::string &content) {
   } else if (command == "SEND") {
     std::cout << "send command\n";
     type = CmdType::Send;
+  } else if (command == "LOGOFF") {
+    std::cout << "logoff\n";
+    type = CmdType::Logoff;
   } else {
     std::cout << "invalid command\n";
     type = CmdType::Error;
@@ -63,6 +66,9 @@ void *Client::commandToServer(void *args) {
 
   while (true) {
     std::getline(std::cin, input);
+    if (std::cin.eof()) {
+      input = "LOGOFF " + _this->username_;
+    }
     std::string content;
     type = _this->validateCommand(input, content);
 
@@ -80,6 +86,11 @@ void *Client::commandToServer(void *args) {
                  sizeof(struct sockaddr_in));
       if (n < 0)
         std::cout << "ERRORR\n";
+
+      // need to add a check for the return of the server
+      if (type == CmdType::Logoff) {
+        exit(0);
+      }
     }
     std::cout << "end of loop\n";
   }
