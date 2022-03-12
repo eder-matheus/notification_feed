@@ -1,5 +1,5 @@
 #include "client.h"
-#include "definitions.h"
+#include "common.h"
 #include "ui.h"
 #include <iostream>
 

@@ -1,12 +1,18 @@
 #include "notification.h"
-#include "definitions.h"
+#include "common.h"
 #include "user.h"
 #include <string>
 #include <map>
 #include <unordered_map>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 class Server {
 private:
+  // attributes to store the metadata
   std::unordered_map<std::string, User> users_;
   // this map stores all the notifications created by all users
   std::unordered_map<long int, Notification> notifications_;
@@ -16,6 +22,11 @@ private:
   // this id is used to define the ids for new notifications added
   // should be stored on the database
   long int new_notification_id_;
+
+  // attributes for server data
+  int socket_;
+  socklen_t client_length_;
+  struct sockaddr_in server_address_, client_address_;
 
 public:
   Server();
