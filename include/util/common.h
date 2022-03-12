@@ -1,3 +1,6 @@
+#include <vector>
+#include <string>
+
 #define MAX_SESSIONS 2
 #define PORT 4000
 #define BUFFER_SIZE 200
@@ -25,4 +28,4 @@ struct Follow
 
 std::vector<std::string> decodificatePackage(char* package);
 
-char* codificatePackage(CmdType, std::string, int timestamp = -1, std::string user = "0");
+void codificatePackage(char*, CmdType, std::string, int timestamp = -1, std::string user = "0");
