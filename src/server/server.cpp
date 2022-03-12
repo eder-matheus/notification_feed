@@ -97,15 +97,17 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
 }
 
 void *Server::receiveCommand(void *args) {
+  std::cout << "Read to receive commands\n";
   Server *_this = (Server *)args;
   struct sockaddr_in client_address;
+  socklen_t client_length;
   int n;
   char package[BUFFER_SIZE];
   while (1) {
     // receive from client
     n = recvfrom(_this->socket_, package, BUFFER_SIZE, 0,
                  (struct sockaddr *)&(client_address),
-                 &(_this->client_length_));
+                 &(client_length));
     if (n < 0)
       printf("[ERROR] Cannot receive from client.");
     printf("Received a datagram: %s\n", package);
@@ -163,6 +165,7 @@ void *Server::receiveCommand(void *args) {
 
 void *Server::sendNotifications(void *args) {
   Server *_this = (Server *)args;
+  std::cout << "Read to send notifications\n";
   while (true) {
     for (auto &notification : _this->pending_notifications_) {
       const auto &user = notification.first;
@@ -192,11 +195,14 @@ void Server::createConnection() {
            sizeof(struct sockaddr)) < 0)
     printf("[ERROR] Cannot perform binding.");
 
-  client_length_ = sizeof(struct sockaddr_in);
+  socklen_t client_length = sizeof(struct sockaddr_in);
 
   pthread_t senderTid;
   pthread_t receiverTid;
 
   pthread_create(&receiverTid, NULL, receiveCommand, (void *)this);
   pthread_create(&senderTid, NULL, sendNotifications, (void *)this);
+
+  pthread_join(receiverTid, NULL);
+  pthread_join(senderTid, NULL);
 }
