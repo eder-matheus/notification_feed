@@ -112,6 +112,7 @@ void *Server::receiveCommand(void *args) {
   char package[BUFFER_SIZE];
   while (1) {
     // receive from client
+    memset(package, 0, BUFFER_SIZE);
     n = recvfrom(_this->socket_, package, BUFFER_SIZE, 0,
                  (struct sockaddr *)&(client_address), &(client_length));
     if (n < 0)
