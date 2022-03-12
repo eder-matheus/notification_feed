@@ -12,7 +12,7 @@ Notification::Notification(std::string message, std::string username)
           .count();
 };
 
-Notification::Notification(std::string message, int timestamp,
+Notification::Notification(std::string message, unsigned long int timestamp,
                            std::string username)
     : id_(-1), timestamp_(timestamp), length_(message.size()),
       pending_receivers_(-1), message_(message), username_(username){};

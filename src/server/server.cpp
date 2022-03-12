@@ -136,7 +136,7 @@ void *Server::receiveCommand(void *args) {
 
     if (received_command == "send") {
       std::string message = decoded_packet[1];
-      int timestamp = std::stoi(decoded_packet[2]);
+      unsigned long int timestamp = std::stoul(decoded_packet[2], nullptr, 10);
       std::string username = decoded_packet[3];
 
       Notification received_notification(message, timestamp, username);

@@ -99,7 +99,7 @@ void *Client::commandToServer(void *args) {
       return 0;
     } else {
       // send packet to server
-      int timestamp =
+      unsigned long int timestamp =
           duration_cast<milliseconds>(system_clock::now().time_since_epoch())
               .count();
       codificatePackage(packet, type, content, timestamp, _this->username_);

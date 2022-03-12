@@ -30,7 +30,7 @@ std::vector<std::string> decodificatePackage(char *package) {
 }
 
 void codificatePackage(char *package, CmdType type, std::string information,
-                       int timestamp, std::string user) {
+                       unsigned long int timestamp, std::string user) {
 
   std::string raw_information = information.substr(0, information.find('\n'));
   raw_information.append(" ");

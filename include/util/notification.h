@@ -3,7 +3,7 @@
 class Notification {
 private:
   long int id_;
-  int timestamp_;
+  unsigned long int timestamp_;
   int length_;
   int pending_receivers_;
   std::string message_;
@@ -12,7 +12,7 @@ private:
 public:
   Notification() = default;
   Notification(std::string message, std::string username);
-  Notification(std::string message, int timestamp, std::string username);
+  Notification(std::string message, unsigned long int timestamp, std::string username);
   int getId();
   void setId(long int id);
   int getTimestamp() const;

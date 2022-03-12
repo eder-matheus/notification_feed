@@ -22,5 +22,5 @@ struct Follow {
 
 std::vector<std::string> decodificatePackage(char *package);
 
-void codificatePackage(char *, CmdType, std::string, int timestamp = -1,
+void codificatePackage(char *, CmdType, std::string, unsigned long int timestamp = 0,
                        std::string user = "0");
