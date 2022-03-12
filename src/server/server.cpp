@@ -93,15 +93,15 @@ bool Server::notificationToUser(std::string user, int notification_id) {
 void *Server::receiveCommand(void *args) {
   Server *_this = (Server *)args;
   int n;
-  char buf[BUFFER_SIZE];
+  char message[BUFFER_SIZE];
   while (1) {
     // receive from client
-    n = recvfrom(_this->socket_, buf, BUFFER_SIZE, 0,
+    n = recvfrom(_this->socket_, message, BUFFER_SIZE, 0,
                  (struct sockaddr *)&(_this->client_address_),
                  &(_this->client_length_));
     if (n < 0)
       printf("[ERROR] Cannot receive from client.");
-    printf("Received a datagram: %s\n", buf);
+    printf("Received a datagram: %s\n", message);
 
     // send to cliente
     n = sendto(_this->socket_, "Got your message\n", BUFFER_SIZE, 0,
@@ -114,14 +114,15 @@ void *Server::receiveCommand(void *args) {
     // receive command from client
 
     if (received_command == CmdType::Send) {
-      Notification received_notification;
+      Notification received_notification; // use decode to get Notification from the received message
       // receive notification from client
-      // addNotification(received_notification);
-      // change db
+      addNotification(received_notification);
+      // update db
     } else if (received_command == CmdType::Follow) {
       Follow follow("ed", "er");
       // receive follow from client
-      // followUser(follow);
+      Follow follow; // use decode to get Follow from the received message
+      followUser(follow);
       // change db
     }
   }
