@@ -132,13 +132,14 @@ void *Server::receiveCommand(void *args) {
       std::string message = decoded_package[1];
       int timestamp = std::stoi(decoded_package[2]);
       std::string username = decoded_package[3];
-      
+
       Notification received_notification(message, timestamp, username);
       _this->addNotification(received_notification);
       // update db
     } else if (received_command == "follow") {
-      // receive follow from client
-      Follow follow; // use decode to get Follow from the received package
+      std::string followed_user = decoded_package[1];
+      std::string username = decoded_package[2];
+      Follow follow(username, followed_user);
       bool follow_ok = _this->followUser(follow);
       if (follow_ok) {
         n = sendto(_this->socket_, "Successfully followed.\n", 25, 0,
