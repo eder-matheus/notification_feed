@@ -108,9 +108,10 @@ void *Server::receiveCommand(void *args) {
   std::cout << "Read to receive commands\n";
   Server *_this = (Server *)args;
   struct sockaddr_in client_address;
-  socklen_t client_length;
+  socklen_t client_length = sizeof(struct sockaddr_in);
   int n;
-  char packet[BUFFER_SIZE];
+  char packet[BUFFER_SIZE], confirmation_packet[BUFFER_SIZE];
+
   while (1) {
     // receive from client
     memset(packet, 0, BUFFER_SIZE);
@@ -121,8 +122,11 @@ void *Server::receiveCommand(void *args) {
     printf("Received a datagram: %s\n", packet);
 
     // send to cliente
-    n = sendto(_this->socket_, "Got your packet\n", BUFFER_SIZE, 0,
-               (struct sockaddr *)&(client_address), sizeof(struct sockaddr));
+    std::strcpy(confirmation_packet, CONFIRMATION_STRING);
+    std::cout << confirmation_packet << "\n";
+
+    n = sendto(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
+               (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));
     if (n < 0)
       printf("[ERROR] Cannot send to client.\n");
 
