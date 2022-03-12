@@ -44,4 +44,5 @@ public:
   static void *sendNotifications(void *);
   static void *receiveCommand(void *);
   void createConnection();
+  int sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address);
 };

@@ -229,3 +229,11 @@ void Server::createConnection() {
   pthread_join(receiverTid, NULL);
   pthread_join(senderTid, NULL);
 }
+
+int Server::sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address) {
+  codificatePackage(confirmation_packet, CmdType::Confirmation, status);
+  int n = sendto(socket_, confirmation_packet, strlen(confirmation_packet), 0,
+             (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));
+
+  return n;
+}
