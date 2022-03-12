@@ -41,7 +41,6 @@ void codificatePackage(char *package, CmdType type, std::string information,
   time_string.append(" ");
 
   std::string raw_user = user.substr(0, user.find('\n'));
-  raw_user.append("\n");
 
   if (type == CmdType::Send) {
     std::strcpy(package, "send ");
