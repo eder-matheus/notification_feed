@@ -11,6 +11,10 @@
 
 Server::Server() {}
 
+bool Server::isLogged(const std::string& username) {
+  return logged_users_.find(username) != logged_users_.end();
+}
+
 bool Server::loginUser(std::string username) {
   if (users_.find(username) != users_.end()) { // user already exists on the db
     User &user = users_[username];
@@ -116,13 +120,12 @@ void *Server::receiveCommand(void *args) {
     if (received_command == CmdType::Send) {
       Notification received_notification; // use decode to get Notification from the received message
       // receive notification from client
-      addNotification(received_notification);
+      _this->addNotification(received_notification);
       // update db
     } else if (received_command == CmdType::Follow) {
-      Follow follow("ed", "er");
       // receive follow from client
       Follow follow; // use decode to get Follow from the received message
-      followUser(follow);
+      _this->followUser(follow);
       // change db
     }
   }
@@ -133,11 +136,13 @@ void *Server::sendNotifications(void *args) {
   Server *_this = (Server *)args;
   while (true) {
     for (auto &notification : _this->pending_notifications_) {
-      auto &user = notification.first;
-      auto &notification_ids = notification.second;
-      for (int i = 0; notification_ids.size(); i++) {
-        if (!_this->notificationToUser(user, notification_ids[i]))
-          std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
+      const auto &user = notification.first;
+      if (_this->isLogged(user)) {
+        auto &notification_ids = notification.second;
+        for (int i = 0; notification_ids.size(); i++) {
+          if (!_this->notificationToUser(user, notification_ids[i]))
+            std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
+        }
       }
     }
   }
