@@ -80,13 +80,13 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
 
   // send to client
   int n;
-  char package[BUFFER_SIZE]; // convert notification to string
-  codificatePackage(package, CmdType::Receive, notification.getMessage(),
+  char packet[BUFFER_SIZE]; // convert notification to string
+  codificatePackage(packet, CmdType::Receive, notification.getMessage(),
                     notification.getTimestamp(), notification.getUsername());
   std::vector<struct sockaddr_in>
       client_addresses; // get client addresses from map
   for (struct sockaddr_in &addr : client_addresses) {
-    n = sendto(socket_, package, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
+    n = sendto(socket_, packet, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
                sizeof(struct sockaddr));
     if (n < 0)
       printf("[ERROR] Cannot send to client.");
@@ -109,37 +109,37 @@ void *Server::receiveCommand(void *args) {
   struct sockaddr_in client_address;
   socklen_t client_length;
   int n;
-  char package[BUFFER_SIZE];
+  char packet[BUFFER_SIZE];
   while (1) {
     // receive from client
-    memset(package, 0, BUFFER_SIZE);
-    n = recvfrom(_this->socket_, package, BUFFER_SIZE, 0,
+    memset(packet, 0, BUFFER_SIZE);
+    n = recvfrom(_this->socket_, packet, BUFFER_SIZE, 0,
                  (struct sockaddr *)&(client_address), &(client_length));
     if (n < 0)
       printf("[ERROR] Cannot receive from client.");
-    printf("Received a datagram: %s\n", package);
+    printf("Received a datagram: %s\n", packet);
 
     // send to cliente
-    n = sendto(_this->socket_, "Got your package\n", BUFFER_SIZE, 0,
+    n = sendto(_this->socket_, "Got your packet\n", BUFFER_SIZE, 0,
                (struct sockaddr *)&(client_address), sizeof(struct sockaddr));
     if (n < 0)
-      printf("[ERROR] Cannot send to client.");
+      printf("[ERROR] Cannot send to client.\n");
 
-    std::vector<std::string> decoded_package = decodificatePackage(package);
-    std::string received_command = decoded_package[0];
+    std::vector<std::string> decoded_packet = decodificatePackage(packet);
+    std::string received_command = decoded_packet[0];
     // receive command from client
 
     if (received_command == "send") {
-      std::string message = decoded_package[1];
-      int timestamp = std::stoi(decoded_package[2]);
-      std::string username = decoded_package[3];
+      std::string message = decoded_packet[1];
+      int timestamp = std::stoi(decoded_packet[2]);
+      std::string username = decoded_packet[3];
 
       Notification received_notification(message, timestamp, username);
       _this->addNotification(received_notification);
       // update db
     } else if (received_command == "follow") {
-      std::string followed_user = decoded_package[1];
-      std::string username = decoded_package[2];
+      std::string followed_user = decoded_packet[1];
+      std::string username = decoded_packet[2];
       Follow follow(username, followed_user);
       bool follow_ok = _this->followUser(follow);
       if (follow_ok) {
@@ -153,7 +153,7 @@ void *Server::receiveCommand(void *args) {
       }
       // change db
     } else if (received_command == "login") {
-      std::string username = decoded_package[1];
+      std::string username = decoded_packet[1];
       bool login_ok = _this->loginUser(username);
       if (login_ok) {
         n = sendto(_this->socket_, "Successfully logged.\n", 25, 0,
@@ -165,7 +165,7 @@ void *Server::receiveCommand(void *args) {
                    sizeof(struct sockaddr));
       }
     } else if (received_command == "logoff") {
-      std::string username = decoded_package[1];
+      std::string username = decoded_packet[1];
       _this->logoffUser(username);
       _this->logged_users_[username].clear();
     }
