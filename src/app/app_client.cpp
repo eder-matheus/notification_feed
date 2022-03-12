@@ -31,16 +31,16 @@ int main(int argc, char *argv[]) {
     return -2;
   }
 
-  char *name = argv[1];
-  char *server = argv[2];
-  char *gate = argv[3];
+  std::string name = argv[1];
+  char* server = argv[2];
+  char* gate = argv[3];
 
   Ui intro(FileType::Intro);
   Client client(name);
 
   intro.asciiArt();
 
-  client.createConnection();
+  client.createConnection(server, gate);
 
   return 0;
 }
