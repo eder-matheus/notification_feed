@@ -9,10 +9,12 @@ Ui::Ui(FileType use) {
 
   switch (ui_use) {
   case FileType::Intro:
-    ascii_image.open("../../../src/client/ui_files/intro_ascii.txt", std::ios::in);
+    ascii_image.open("../../../src/client/ui_files/intro_ascii.txt",
+                     std::ios::in);
     break;
   case FileType::Exit:
-    ascii_image.open("../../../src/client/ui_files/exit_ascii.txt", std::ios::in);
+    ascii_image.open("../../../src/client/ui_files/exit_ascii.txt",
+                     std::ios::in);
     break;
   case FileType::None:
     break;
@@ -25,7 +27,8 @@ Ui::Ui(FileType use) {
 }
 // destructor should close file
 
-void Ui::textBlock(UiType label, std::string message, std::string sender, int timestamp) {
+void Ui::textBlock(UiType label, std::string message, std::string sender,
+                   int timestamp) {
 
   std::cout << "### ";
   switch (label) {
@@ -50,7 +53,8 @@ void Ui::textBlock(UiType label, std::string message, std::string sender, int ti
   default:
     break;
   }
-  std::cout << "###" << "\n";
+  std::cout << "###"
+            << "\n";
 }
 
 void Ui::asciiArt() {

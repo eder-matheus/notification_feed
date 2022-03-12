@@ -2,28 +2,25 @@
 #include "common.h"
 #include "notification.h"
 #include "ui.h"
+#include <arpa/inet.h>
 #include <chrono>
+#include <cstring>
 #include <iostream>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <pthread.h>
 #include <string>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <cstring>
 #include <strings.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
 
 using namespace std::chrono;
 
 Client::Client(std::string username)
-  : username_(username),
-    ready_to_receive_(false)
-{
-}
+    : username_(username), ready_to_receive_(false) {}
 
-CmdType Client::validateCommand(std::string input, std::string& content) {
+CmdType Client::validateCommand(std::string input, std::string &content) {
 
   std::string command = input.substr(0, input.find(' '));
   input.erase(0, input.find(' ') + sizeof(char));
@@ -54,7 +51,9 @@ void *Client::commandToServer(void *args) {
 
   codificatePackage(packet, type, _this->username_);
 
-  int n = sendto(_this->socket_, packet, strlen(packet), 0, (const struct sockaddr *) &_this->server_address_, sizeof(struct sockaddr_in));
+  int n = sendto(_this->socket_, packet, strlen(packet), 0,
+                 (const struct sockaddr *)&_this->server_address_,
+                 sizeof(struct sockaddr_in));
   if (n < 0)
     std::cout << "ERRORR\n";
 
@@ -71,9 +70,13 @@ void *Client::commandToServer(void *args) {
       return 0;
     } else {
       // send packet to server
-      int timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+      int timestamp =
+          duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+              .count();
       codificatePackage(packet, type, content, timestamp, _this->username_);
-      n = sendto(_this->socket_, packet, strlen(packet), 0, (const struct sockaddr *) &_this->server_address_, sizeof(struct sockaddr_in));
+      n = sendto(_this->socket_, packet, strlen(packet), 0,
+                 (const struct sockaddr *)&_this->server_address_,
+                 sizeof(struct sockaddr_in));
       if (n < 0)
         std::cout << "ERRORR\n";
     }
@@ -86,23 +89,24 @@ void *Client::receiveFromServer(void *args) {
   int i = 4;
   while (true) {
     if (_this->ready_to_receive_) {
-      Notification notification; // receive data from server through the UDP sockets
+      Notification
+          notification; // receive data from server through the UDP sockets
       if (i < 3)
         std::cout << "another user message is here!\n";
-      //i = rand() % 100000000000000 + 1;
+      // i = rand() % 100000000000000 + 1;
     }
   }
   return 0;
 }
 
-void Client::createConnection(char* server, char* gate) {
+void Client::createConnection(char *server, char *gate) {
   pthread_t senderTid;
   pthread_t receiverTid;
-  
+
   server_ = gethostbyname(server);
-  if(server == NULL) {
+  if (server == NULL) {
     std::cout << "ERROR, host does not exist\n";
-  } else { 
+  } else {
     if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
       std::cout << "ERROUU\n";
     server_address_.sin_family = AF_INET;

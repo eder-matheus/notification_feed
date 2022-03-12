@@ -1,64 +1,41 @@
+#include "notification.h"
 #include <chrono>
 #include <iostream>
 #include <string>
-#include "notification.h"
 
 Notification::Notification(std::string message, std::string username)
-  : id_(-1),
-    length_(message.size()),
-    pending_receivers_(-1),
-    message_(message),
-    username_(username)
-{
+    : id_(-1), length_(message.size()), pending_receivers_(-1),
+      message_(message), username_(username) {
   using namespace std::chrono;
-  timestamp_ = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+  timestamp_ =
+      duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+          .count();
 };
 
-Notification::Notification(std::string message, int timestamp, std::string username)
-  : id_(-1),
-    timestamp_(timestamp),
-    length_(message.size()),
-    pending_receivers_(-1),
-    message_(message),
-    username_(username)
-{
-};
+Notification::Notification(std::string message, int timestamp,
+                           std::string username)
+    : id_(-1), timestamp_(timestamp), length_(message.size()),
+      pending_receivers_(-1), message_(message), username_(username){};
 
-void Notification::setId(long int id) {
-  id_ = id;
-}
+void Notification::setId(long int id) { id_ = id; }
 
-int Notification::getTimestamp() const {
-  return timestamp_;
-}
+int Notification::getTimestamp() const { return timestamp_; }
 
-void Notification::setTimestamp(int timestamp) {
-  timestamp_ = timestamp;
-}
+void Notification::setTimestamp(int timestamp) { timestamp_ = timestamp; }
 
-int Notification::getLength() {
-  return length_;
-}
+int Notification::getLength() { return length_; }
 
-int Notification::getPendingReceivers() {
-  return pending_receivers_;
-}
+int Notification::getPendingReceivers() { return pending_receivers_; }
 
 void Notification::setPendingReceivers(int pending_receivers) {
   pending_receivers_ = pending_receivers;
 }
 
-std::string Notification::getMessage() const  {
-  return message_;
-}
+std::string Notification::getMessage() const { return message_; }
 
-std::string Notification::getUsername() const  {
-  return username_;
-}
+std::string Notification::getUsername() const { return username_; }
 
-void Notification::decrementPendingReceivers() {
-  pending_receivers_--;
-}
+void Notification::decrementPendingReceivers() { pending_receivers_--; }
 
 void Notification::print() {
   std::cout << username_ << ": " << message_ << " (" << timestamp_ << ")\n";

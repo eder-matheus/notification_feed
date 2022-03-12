@@ -32,8 +32,8 @@ int main(int argc, char *argv[]) {
   }
 
   std::string name = argv[1];
-  char* server = argv[2];
-  char* gate = argv[3];
+  char *server = argv[2];
+  char *gate = argv[3];
 
   Ui intro(FileType::Intro);
   Client client(name);

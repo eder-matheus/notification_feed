@@ -1,22 +1,13 @@
-#include <vector>
 #include <string>
+#include <vector>
 
 #define MAX_SESSIONS 2
 #define PORT 4000
 #define BUFFER_SIZE 200
 
-enum class CmdType
-{
-  Send,
-  Follow,
-  Login,
-  Receive,
-  Logoff,
-  Error
-};
+enum class CmdType { Send, Follow, Login, Receive, Logoff, Error };
 
-struct Follow
-{
+struct Follow {
   std::string client;
   std::string user_followed;
 
@@ -27,6 +18,7 @@ struct Follow
   }
 };
 
-std::vector<std::string> decodificatePackage(char* package);
+std::vector<std::string> decodificatePackage(char *package);
 
-void codificatePackage(char*, CmdType, std::string, int timestamp = -1, std::string user = "0");
+void codificatePackage(char *, CmdType, std::string, int timestamp = -1,
+                       std::string user = "0");
