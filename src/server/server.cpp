@@ -4,11 +4,11 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <string>
+#include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include <strings.h>
 
 Server::Server() {}
 
@@ -81,6 +81,8 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   // send to client
   int n;
   char package[BUFFER_SIZE]; // convert notification to string
+  codificatePackage(package, CmdType::Receive, notification.getMessage(),
+                    notification.getTimestamp(), notification.getUsername());
   std::vector<struct sockaddr_in>
       client_addresses; // get client addresses from map
   for (struct sockaddr_in &addr : client_addresses) {
@@ -106,16 +108,14 @@ void *Server::receiveCommand(void *args) {
   while (1) {
     // receive from client
     n = recvfrom(_this->socket_, package, BUFFER_SIZE, 0,
-                 (struct sockaddr *)&(client_address),
-                 &(client_length));
+                 (struct sockaddr *)&(client_address), &(client_length));
     if (n < 0)
       printf("[ERROR] Cannot receive from client.");
     printf("Received a datagram: %s\n", package);
 
     // send to cliente
     n = sendto(_this->socket_, "Got your package\n", BUFFER_SIZE, 0,
-               (struct sockaddr *)&(client_address),
-               sizeof(struct sockaddr));
+               (struct sockaddr *)&(client_address), sizeof(struct sockaddr));
     if (n < 0)
       printf("[ERROR] Cannot send to client.");
 

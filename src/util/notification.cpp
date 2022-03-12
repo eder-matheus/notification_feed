@@ -19,7 +19,7 @@ void Notification::setId(long int id) {
   id_ = id;
 }
 
-int Notification::getTimestamp() {
+int Notification::getTimestamp() const {
   return timestamp_;
 }
 
