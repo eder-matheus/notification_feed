@@ -5,7 +5,7 @@
 
 // Notification package:  send message timestamp username
 // Follow package:        follow followed_user username
-// Login packag:          login username
+// Login package:         login username
 // Receive package:       message timestamp username
 // Logoff package:        logoff username
 std::vector<std::string> decodificatePackage(char *package) {
@@ -41,6 +41,7 @@ void codificatePackage(char *package, CmdType type, std::string information,
   time_string.append(" ");
 
   std::string raw_user = user.substr(0, user.find('\n'));
+  raw_user.append("\n");
 
   if (type == CmdType::Send) {
     std::strcpy(package, "send ");
