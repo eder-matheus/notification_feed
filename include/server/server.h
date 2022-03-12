@@ -1,9 +1,6 @@
-//#include "notification.h"
-//#include "definitions.h"
-//#include "user.h"
-#include "../../include/util/notification.h"
-#include "../../include/util/definitions.h"
-#include "../../include/server/user.h"
+#include "notification.h"
+#include "definitions.h"
+#include "user.h"
 #include <string>
 #include <map>
 #include <unordered_map>

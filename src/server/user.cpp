@@ -1,5 +1,4 @@
-//#include "user.h"
-#include "../../include/server/user.h"
+#include "user.h"
 
 User::User(std::string name)
         : username_(name),

@@ -1,5 +1,4 @@
-//#include "server.h"
-#include "../../include/server/server.h"
+#include "server.h"
 #include <iostream>
 #include <pthread.h>
 #include <string>
