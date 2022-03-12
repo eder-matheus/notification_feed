@@ -95,6 +95,11 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
 
   notifications_[notification_id].decrementPendingReceivers();
 
+  // delete notification from server if there is no pending receivers
+  if (notifications_[notification_id].getPendingReceivers() == 0) {
+    notifications_.erase(notification_id);
+  }
+
   return true;
 }
 
