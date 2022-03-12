@@ -136,6 +136,8 @@ void *Server::receiveCommand(void *args) {
 
       Notification received_notification(message, timestamp, username);
       _this->addNotification(received_notification);
+      std::cout << "Received notification: ";
+      received_notification.print();
       // update db
     } else if (received_command == "follow") {
       std::string followed_user = decoded_packet[1];
@@ -143,10 +145,12 @@ void *Server::receiveCommand(void *args) {
       Follow follow(username, followed_user);
       bool follow_ok = _this->followUser(follow);
       if (follow_ok) {
+        std::cout << username << " followed " << followed_user << "\n";
         n = sendto(_this->socket_, "Successfully followed.\n", 25, 0,
                    (struct sockaddr *)&(client_address),
                    sizeof(struct sockaddr));
       } else {
+        std::cout << "[ERROR]" << followed_user << " not found.\n";
         n = sendto(_this->socket_, "Failed to follow.\n", 25, 0,
                    (struct sockaddr *)&(client_address),
                    sizeof(struct sockaddr));
@@ -156,10 +160,12 @@ void *Server::receiveCommand(void *args) {
       std::string username = decoded_packet[1];
       bool login_ok = _this->loginUser(username);
       if (login_ok) {
+        std::cout << username << " successfully logged.\n";
         n = sendto(_this->socket_, "Successfully logged.\n", 25, 0,
                    (struct sockaddr *)&(client_address),
                    sizeof(struct sockaddr));
       } else {
+        std::cout << "[ERROR]" << username << " has reached max sessions\n";
         n = sendto(_this->socket_, "Failed to log.\n", 25, 0,
                    (struct sockaddr *)&(client_address),
                    sizeof(struct sockaddr));
@@ -169,6 +175,7 @@ void *Server::receiveCommand(void *args) {
       _this->logoffUser(username);
       _this->logged_users_[username].clear();
     }
+    std::cout << "end loop\n";
   }
   return 0;
 }
