@@ -1,4 +1,6 @@
 #define MAX_SESSIONS 2
+#define PORT 4000
+#define BUFFER_SIZE 200
 
 enum class CmdType
 {
