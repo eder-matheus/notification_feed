@@ -37,6 +37,11 @@ bool Server::logoffUser(std::string username) {
     User &user = users_[username];
     user.decrementSessions();
 
+    // if user has no sessions on, delete the list of addresses of it
+    if (user.getSessions() == 0) {
+      logged_users_.erase(username);
+    }
+
     return true;
   }
 
