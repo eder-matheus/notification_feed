@@ -152,7 +152,7 @@ void *Server::receiveCommand(void *args) {
       }
       // change db
     } else if (received_command == "login") {
-      std::string username; // get username from the received package
+      std::string username = decoded_package[1];
       bool login_ok = _this->loginUser(username);
       if (login_ok) {
         n = sendto(_this->socket_, "Successfully logged.\n", 25, 0,
@@ -163,8 +163,8 @@ void *Server::receiveCommand(void *args) {
                    (struct sockaddr *)&(client_address),
                    sizeof(struct sockaddr));
       }
-    } else {                // CmdType::Logoff
-      std::string username; // get username from the received package
+    } else if (received_command == "logoff") {
+      std::string username = decoded_package[1];
       _this->logoffUser(username);
       _this->logged_users_[username].clear();
     }
