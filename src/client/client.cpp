@@ -43,7 +43,6 @@ CmdType Client::validateCommand(std::string input, std::string &content) {
 
 void *Client::commandToServer(void *args) {
 
-  std::cout << "abri a thread de enviar comandos\n";
   std::string input;
   Client *_this = (Client *)args;
   char packet[BUFFER_SIZE];
@@ -56,6 +55,8 @@ void *Client::commandToServer(void *args) {
                  sizeof(struct sockaddr_in));
   if (n < 0)
     std::cout << "ERRORR\n";
+
+  _this->ready_to_receive_ = true;
 
   Ui ui(FileType::None);
   ui.textBlock(UiType::Message, "teste");
@@ -87,6 +88,7 @@ void *Client::commandToServer(void *args) {
 void *Client::receiveFromServer(void *args) {
   Client *_this = (Client *)args;
   int i = 4;
+  std::cout << "receiving\n";
   while (true) {
     if (_this->ready_to_receive_) {
       Notification

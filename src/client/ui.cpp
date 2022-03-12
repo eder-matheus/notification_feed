@@ -30,7 +30,9 @@ Ui::Ui(FileType use) {
 void Ui::textBlock(UiType label, std::string message, std::string sender,
                    int timestamp) {
 
-  std::cout << "### ";
+  std::cout << "\n"
+            << "### ";
+
   switch (label) {
   case UiType::Message:
     std::cout << "A NOTIFICATION FROM:\n";
@@ -54,7 +56,7 @@ void Ui::textBlock(UiType label, std::string message, std::string sender,
     break;
   }
   std::cout << "###"
-            << "\n";
+            << "\n\n";
 }
 
 void Ui::asciiArt() {
