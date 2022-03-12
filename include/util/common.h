@@ -20,6 +20,7 @@ struct Follow
   std::string client;
   std::string user_followed;
 
+  Follow() = default;
   Follow(std::string c, std::string uf) {
     client = c;
     user_followed = uf;
