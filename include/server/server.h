@@ -1,14 +1,14 @@
-#include "notification.h"
 #include "common.h"
+#include "notification.h"
 #include "user.h"
-#include <string>
 #include <map>
-#include <unordered_map>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <string>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
+#include <unordered_map>
 
 class Server {
 private:
@@ -31,10 +31,10 @@ private:
 public:
   Server();
   bool loginUser(std::string username);
-  void addNotification(const Notification& notification);
+  void addNotification(const Notification &notification);
   bool notificationToUser(std::string user, int notification_id);
-  static void* sendNotifications(void *);
-  static void* receiveCommand(void *);
+  static void *sendNotifications(void *);
+  static void *receiveCommand(void *);
   bool logoffUser(std::string username);
   bool followUser(Follow follow);
   void createConnection();
