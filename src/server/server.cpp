@@ -122,8 +122,9 @@ void *Server::receiveCommand(void *args) {
     printf("Received a datagram: %s\n", packet);
 
     // send to cliente
-    std::strcpy(confirmation_packet, CONFIRMATION_STRING);
-    std::cout << confirmation_packet << "\n";
+    memset(confirmation_packet, 0, BUFFER_SIZE);
+    codificatePackage(confirmation_packet, CmdType::Confirmation, CMD_OK);
+    std::cout << "Confirmation packet: " << confirmation_packet << "\n";
 
     n = sendto(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
                (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));

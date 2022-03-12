@@ -102,12 +102,19 @@ void *Client::commandToServer(void *args) {
       unsigned long int timestamp =
           duration_cast<milliseconds>(system_clock::now().time_since_epoch())
               .count();
+      memset(packet, 0, BUFFER_SIZE);
       codificatePackage(packet, type, content, timestamp, _this->username_);
       n = sendto(_this->socket_, packet, strlen(packet), 0,
                  (const struct sockaddr *)&_this->server_address_,
                  sizeof(struct sockaddr_in));
       if (n < 0)
         std::cout << "\nfailed to send cmd\n";
+
+      // memset(packet, 0, BUFFER_SIZE);
+      // n = recvfrom(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
+      //    (struct sockaddr *) &_this->from_, &length);
+      // if (n < 0)
+      //   std::cout << "\nfailed to receive\n";
 
       // need to add a check for the return of the server
       if (type == CmdType::Logoff) {

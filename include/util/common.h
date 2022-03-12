@@ -4,10 +4,10 @@
 #define MAX_SESSIONS 2
 #define PORT 4000
 #define BUFFER_SIZE 200
-#define C_BUFFER_SIZE 17
-#define CONFIRMATION_STRING "got your packet\n"
+#define CMD_OK "1"
+#define CMD_FAIL "0"
 
-enum class CmdType { Send, Follow, Login, Receive, Logoff, Error };
+enum class CmdType { Send, Follow, Login, Receive, Logoff, Confirmation, Error };
 
 struct Follow {
   std::string client;
