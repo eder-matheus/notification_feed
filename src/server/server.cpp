@@ -118,22 +118,11 @@ void *Server::receiveCommand(void *args) {
     n = recvfrom(_this->socket_, packet, BUFFER_SIZE, 0,
                  (struct sockaddr *)&(client_address), &(client_length));
     if (n < 0)
-      printf("[ERROR] Cannot receive from client.");
+      printf("[ERROR] Cannot receive command from client.");
     printf("Received a datagram: %s\n", packet);
-
-    // send to cliente
-    memset(confirmation_packet, 0, BUFFER_SIZE);
-    codificatePackage(confirmation_packet, CmdType::Confirmation, CMD_OK);
-    std::cout << "Confirmation packet: " << confirmation_packet << "\n";
-
-    n = sendto(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
-               (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));
-    if (n < 0)
-      printf("[ERROR] Cannot send to client.\n");
 
     std::vector<std::string> decoded_packet = decodificatePackage(packet);
     std::string received_command = decoded_packet[0];
-    // receive command from client
 
     if (received_command == "send") {
       std::string message = decoded_packet[1];
@@ -144,6 +133,12 @@ void *Server::receiveCommand(void *args) {
       _this->addNotification(received_notification);
       std::cout << "Received notification: ";
       received_notification.print();
+
+      // send confirmation to client
+      memset(confirmation_packet, 0, BUFFER_SIZE);
+      if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
+        printf("[ERROR] Cannot send notification confirmation to client.\n");
+      }
       // update db
     } else if (received_command == "follow") {
       std::string followed_user = decoded_packet[1];
@@ -152,14 +147,18 @@ void *Server::receiveCommand(void *args) {
       bool follow_ok = _this->followUser(follow);
       if (follow_ok) {
         std::cout << username << " followed " << followed_user << "\n";
-        n = sendto(_this->socket_, "Successfully followed.\n", 25, 0,
-                   (struct sockaddr *)&(client_address),
-                   sizeof(struct sockaddr));
+        // send confirmation to client
+        memset(confirmation_packet, 0, BUFFER_SIZE);
+        if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
+          printf("[ERROR] Cannot send follow confirmation to client.\n");
+        }
       } else {
         std::cout << "[ERROR]" << followed_user << " not found.\n";
-        n = sendto(_this->socket_, "Failed to follow.\n", 25, 0,
-                   (struct sockaddr *)&(client_address),
-                   sizeof(struct sockaddr));
+        // send confirmation to client
+        memset(confirmation_packet, 0, BUFFER_SIZE);
+        if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
+          printf("[ERROR] Cannot send follow confirmation to client.\n");
+        }
       }
       // change db
     } else if (received_command == "login") {
@@ -167,19 +166,27 @@ void *Server::receiveCommand(void *args) {
       bool login_ok = _this->loginUser(username);
       if (login_ok) {
         std::cout << username << " successfully logged.\n";
-        n = sendto(_this->socket_, "Successfully logged.\n", 25, 0,
-                   (struct sockaddr *)&(client_address),
-                   sizeof(struct sockaddr));
+        // send confirmation to client
+        memset(confirmation_packet, 0, BUFFER_SIZE);
+        if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
+          printf("[ERROR] Cannot send login confirmation to client.\n");
+        }
       } else {
         std::cout << "[ERROR]" << username << " has reached max sessions\n";
-        n = sendto(_this->socket_, "Failed to log.\n", 25, 0,
-                   (struct sockaddr *)&(client_address),
-                   sizeof(struct sockaddr));
+        // send confirmation to client
+        memset(confirmation_packet, 0, BUFFER_SIZE);
+        if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
+          printf("[ERROR] Cannot send login confirmation to client.\n");
+        }
       }
     } else if (received_command == "logoff") {
       std::string username = decoded_packet[1];
       _this->logoffUser(username);
-      _this->logged_users_[username].clear();
+      // send confirmation to client
+      memset(confirmation_packet, 0, BUFFER_SIZE);
+      if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
+        printf("[ERROR] Cannot send logoff confirmation to client.\n");
+      }
     }
     std::cout << "end loop\n";
   }
