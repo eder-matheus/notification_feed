@@ -140,7 +140,6 @@ void *Server::receiveCommand(void *args) {
       received_notification.print();
 
       // send confirmation to client
-      memset(confirmation_packet, 0, BUFFER_SIZE);
       if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
         printf("[ERROR] Cannot send notification confirmation to client.\n");
       }
@@ -153,14 +152,12 @@ void *Server::receiveCommand(void *args) {
       if (follow_ok) {
         std::cout << username << " followed " << followed_user << "\n";
         // send confirmation to client
-        memset(confirmation_packet, 0, BUFFER_SIZE);
         if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
           printf("[ERROR] Cannot send follow confirmation to client.\n");
         }
       } else {
         std::cout << "[ERROR]" << followed_user << " not found.\n";
         // send confirmation to client
-        memset(confirmation_packet, 0, BUFFER_SIZE);
         if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
           printf("[ERROR] Cannot send follow confirmation to client.\n");
         }
@@ -172,14 +169,12 @@ void *Server::receiveCommand(void *args) {
       if (login_ok) {
         std::cout << username << " successfully logged.\n";
         // send confirmation to client
-        memset(confirmation_packet, 0, BUFFER_SIZE);
         if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
           printf("[ERROR] Cannot send login confirmation to client.\n");
         }
       } else {
         std::cout << "[ERROR]" << username << " has reached max sessions\n";
         // send confirmation to client
-        memset(confirmation_packet, 0, BUFFER_SIZE);
         if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
           printf("[ERROR] Cannot send login confirmation to client.\n");
         }
@@ -188,7 +183,6 @@ void *Server::receiveCommand(void *args) {
       std::string username = decoded_packet[1];
       _this->logoffUser(username);
       // send confirmation to client
-      memset(confirmation_packet, 0, BUFFER_SIZE);
       if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
         printf("[ERROR] Cannot send logoff confirmation to client.\n");
       }
@@ -243,6 +237,7 @@ void Server::createConnection() {
 }
 
 int Server::sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address) {
+  memset(confirmation_packet, 0, BUFFER_SIZE);
   codificatePackage(confirmation_packet, CmdType::Confirmation, status);
   int n = sendto(socket_, confirmation_packet, strlen(confirmation_packet), 0,
              (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));
