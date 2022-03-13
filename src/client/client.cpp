@@ -79,7 +79,7 @@ void *Client::commandToServer(void *args) {
 
       memset(confirmation_packet, 0, BUFFER_SIZE);
       std::cout << confirmation_packet << '\n';
-      n = recvfrom(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
+      n = recvfrom(_this->socket_, confirmation_packet, BUFFER_SIZE, 0,
                    (struct sockaddr *) &_this->from_, &length);
       if (n < 0)
         std::cout << "\nfailed to receive\n";
@@ -111,6 +111,7 @@ void *Client::commandToServer(void *args) {
 
   signal(SIGINT, sigintHandler);
   while (true) {
+    server_answered = false;
     std::getline(std::cin, input);
     if (std::cin.eof() || _interruption_) {
       input = "LOGOFF " + _this->username_;
@@ -131,21 +132,25 @@ void *Client::commandToServer(void *args) {
               .count();
       memset(packet, 0, BUFFER_SIZE);
       codificatePackage(packet, type, content, timestamp, _this->username_);
-      n = sendto(_this->socket_, packet, strlen(packet), 0,
-                 (const struct sockaddr *)&_this->server_address_,
-                 sizeof(struct sockaddr_in));
-      if (n < 0)
-        std::cout << "\nfailed to send cmd\n";
+      while(!server_answered) {
+        n = sendto(_this->socket_, packet, strlen(packet), 0,
+                   (const struct sockaddr *)&_this->server_address_,
+                   sizeof(struct sockaddr_in));
+        if (n < 0)
+          std::cout << "\nfailed to send cmd\n";
 
-      // memset(packet, 0, BUFFER_SIZE);
-      // n = recvfrom(_this->socket_, confirmation_packet, strlen(confirmation_packet), 0,
-      //    (struct sockaddr *) &_this->from_, &length);
-      // if (n < 0)
-      //   std::cout << "\nfailed to receive\n";
+        memset(confirmation_packet, 0, BUFFER_SIZE);
+        n = recvfrom(_this->socket_, confirmation_packet, BUFFER_SIZE, 0,
+                     (struct sockaddr *) &_this->from_, &length);
+        if (n < 0)
+          std::cout << "\nfailed to receive\n";
 
-      // need to add a check for the return of the server
-      if (type == CmdType::Logoff) {
-        exit(0);
+	received_packet_data = decodificatePackage(confirmation_packet);
+	
+        // need to add a check for the return of the server
+        if (type == CmdType::Logoff) {
+          exit(0);
+        }
       }
     }
     std::cout << "end of loop\n";
