@@ -32,7 +32,7 @@ std::vector<std::string> decodificatePackage(char *package) {
 void codificatePackage(char *package, CmdType type, std::string information,
                        unsigned long int timestamp, std::string user) {
 
-  std::string raw_information = information.substr(0, information.find('\n'));
+  std::string raw_information = information.substr(0, information.find(' '));
   raw_information.append(" ");
 
   std::string time_string = std::to_string(timestamp);

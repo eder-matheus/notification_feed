@@ -25,5 +25,6 @@ public:
   CmdType validateCommand(std::string input, std::string &content);
   static void *receiveFromServer(void *);
   void createConnection(char *, std::string);
-  bool checkServerAnswer(bool *, int);
+  std::string checkServerAnswer();
+  std::string tryCommand(char *, int);
 };
