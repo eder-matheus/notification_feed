@@ -59,12 +59,12 @@ void *Client::commandToServer(void *args) {
 
   std::string input;
   Client *_this = (Client *)args;
-  char packet[BUFFER_SIZE], confirmation_packet[BUFFER_SIZE];
+  char packet[BUFFER_SIZE]; //, confirmation_packet[BUFFER_SIZE];
   CmdType type;
-  unsigned int length = 0;  
+  // unsigned int length = 0;  
   bool server_answered = false, blocked = false;
   int n = 0, counter = 0;
-  std::vector<std::string> received_packet_data;
+  // std::vector<std::string> received_packet_data;
 
   codificatePackage(packet, CmdType::Login, _this->username_);
 
@@ -75,32 +75,7 @@ void *Client::commandToServer(void *args) {
     if (n < 0)
       std::cout << "\nfailed to send login\n";
     else {
-      length = sizeof(struct sockaddr_in);
-
-      memset(confirmation_packet, 0, BUFFER_SIZE);
-      std::cout << confirmation_packet << '\n';
-      n = recvfrom(_this->socket_, confirmation_packet, BUFFER_SIZE, 0,
-                   (struct sockaddr *) &_this->from_, &length);
-      if (n < 0)
-        std::cout << "\nfailed to receive\n";
-
-      received_packet_data = decodificatePackage(confirmation_packet);
-
-      if (received_packet_data.empty()) {
-        if (counter == 10000000000) {
-	  server_answered = true;
-	  blocked = true;
-	}
-      }
-      else if (received_packet_data[0] == CMD_OK) {
-	std::cout << "bazinga\n";
-        server_answered = true;
-      }
-      else if (received_packet_data[0] == CMD_FAIL) {
-        server_answered = true;
-        blocked = true;
-      }
-      
+      server_answered = _this->checkServerAnswer(&blocked, counter);
       counter++;
     }
   }
@@ -132,26 +107,22 @@ void *Client::commandToServer(void *args) {
               .count();
       memset(packet, 0, BUFFER_SIZE);
       codificatePackage(packet, type, content, timestamp, _this->username_);
+      counter = 0;
+
       while(!server_answered) {
         n = sendto(_this->socket_, packet, strlen(packet), 0,
                    (const struct sockaddr *)&_this->server_address_,
                    sizeof(struct sockaddr_in));
         if (n < 0)
           std::cout << "\nfailed to send cmd\n";
-
-        memset(confirmation_packet, 0, BUFFER_SIZE);
-        n = recvfrom(_this->socket_, confirmation_packet, BUFFER_SIZE, 0,
-                     (struct sockaddr *) &_this->from_, &length);
-        if (n < 0)
-          std::cout << "\nfailed to receive\n";
-
-	received_packet_data = decodificatePackage(confirmation_packet);
-	
+        server_answered = _this->checkServerAnswer(&blocked, counter);
+       	counter++;
         // need to add a check for the return of the server
         if (type == CmdType::Logoff) {
           exit(0);
         }
       }
+
     }
     std::cout << "end of loop\n";
   }
@@ -193,3 +164,34 @@ void Client::createConnection(char *server, std::string gate) {
     pthread_join(senderTid, NULL);
   }
 }
+
+bool Client::checkServerAnswer(bool *blocked, int counter) {
+  char confirmation_packet[BUFFER_SIZE];
+  unsigned int length = sizeof(struct sockaddr_in);
+  std::vector<std::string> received_packet_data;
+  int n = 0;
+  bool server_answered = false;
+ 
+  memset(confirmation_packet, 0, BUFFER_SIZE);
+
+  n = recvfrom(socket_, confirmation_packet, BUFFER_SIZE, 0,
+	       (struct sockaddr *) &from_, &length);
+  if (n < 0) {
+    std::cout << "\n failed to receive \n";
+  }
+
+  received_packet_data = decodificatePackage(confirmation_packet);
+
+  if (received_packet_data.empty()) {
+    if (counter == 100000000) {
+      server_answered = true;
+      *blocked = true;
+    }
+  } else if (received_packet_data[0] == CMD_OK) {
+    server_answered = true;
+  } else if (received_packet_data[0] == CMD_FAIL) {
+    server_answered = true;
+    *blocked = true;
+  }
+  return server_answered;
+} 
