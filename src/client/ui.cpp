@@ -28,7 +28,7 @@ Ui::Ui(FileType use) {
 // destructor should close file
 
 void Ui::textBlock(UiType label, std::string message, std::string sender,
-                   int timestamp) {
+                   unsigned long int timestamp) {
 
   std::cout << "\n"
             << "### ";
