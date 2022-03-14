@@ -49,7 +49,7 @@ void codificatePackage(char *package, CmdType type, std::string information,
   } else if (type == CmdType::Follow) {
     std::strcpy(package, "follow ");
     std::strcat(package, raw_information.c_str());
-    std::strcat(package, user.c_str());
+    std::strcat(package, raw_user.c_str());
   } else if (type == CmdType::Login) {
     std::strcpy(package, "login ");
     std::strcat(package, raw_information.c_str());
