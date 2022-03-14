@@ -17,6 +17,8 @@ Notification::Notification(std::string message, unsigned long int timestamp,
     : id_(-1), timestamp_(timestamp), length_(message.size()),
       pending_receivers_(-1), message_(message), username_(username){};
 
+int Notification::getId() const { return id_; }
+
 void Notification::setId(long int id) { id_ = id; }
 
 int Notification::getTimestamp() const { return timestamp_; }
