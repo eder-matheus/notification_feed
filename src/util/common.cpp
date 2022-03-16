@@ -11,16 +11,16 @@
 std::vector<std::string> decodificatePackage(char *package) {
   std::vector<std::string> broken_package;
   std::string full_package(package);
-  std::size_t space_pos;
+  std::size_t eol_pos;
   std::string data = "";
   bool decoded = false;
 
   while (!decoded) {
-    space_pos = full_package.find(' ');
-    if (space_pos != std::string::npos) {
-      data = full_package.substr(0, space_pos);
+    eol_pos = full_package.find('\n');
+    if (eol_pos != std::string::npos) {
+      data = full_package.substr(0, eol_pos);
       broken_package.push_back(data);
-      full_package.erase(0, full_package.find(' ') + sizeof(char));
+      full_package.erase(0, full_package.find('\n') + sizeof(char));
     } else {
       decoded = true;
     }
@@ -32,33 +32,33 @@ std::vector<std::string> decodificatePackage(char *package) {
 void codificatePackage(char *package, CmdType type, std::string information,
                        unsigned long int timestamp, std::string user) {
 
-  std::string raw_information = information.substr(0, information.find(' '));
-  raw_information.append(" ");
+  std::string raw_information = information.substr(0, information.find('\n'));
+  raw_information.append("\n");
 
   std::string time_string = std::to_string(timestamp);
-  time_string.append(" ");
+  time_string.append("\n");
 
   std::string raw_user = user.substr(0, user.find('\n'));
-  raw_user.append(" ");
+  raw_user.append("\n");
 
   if (type == CmdType::Send) {
-    std::strcpy(package, "send ");
+    std::strcpy(package, "send\n");
     std::strcat(package, raw_information.c_str());
     std::strcat(package, time_string.c_str());
     std::strcat(package, raw_user.c_str());
   } else if (type == CmdType::Follow) {
-    std::strcpy(package, "follow ");
+    std::strcpy(package, "follow\n");
     std::strcat(package, raw_information.c_str());
     std::strcat(package, raw_user.c_str());
   } else if (type == CmdType::Login) {
-    std::strcpy(package, "login ");
+    std::strcpy(package, "login\n");
     std::strcat(package, raw_information.c_str());
   } else if (type == CmdType::Receive) {
     std::strcpy(package, raw_information.c_str());
     std::strcat(package, time_string.c_str());
     std::strcat(package, raw_user.c_str());
   } else if (type == CmdType::Logoff) {
-    std::strcpy(package, "logoff ");
+    std::strcpy(package, "logoff\n");
     std::strcat(package, raw_information.c_str());
   } else if (type == CmdType::Confirmation) {
     std::strcpy(package, raw_information.c_str());
