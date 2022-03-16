@@ -190,6 +190,11 @@ void *Server::receiveCommand(void *args) {
       if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
         printf("[ERROR] Cannot send logoff confirmation to client.\n");
       }
+    } else {
+      std::cout << "[ERROR] Command not identified\nDecoded packet:\n";
+      for (std::string word : decoded_packet) {
+        std::cout << "\t" << word << "\n";
+      }
     }
     std::cout << "end loop\n";
   }
