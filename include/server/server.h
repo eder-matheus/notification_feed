@@ -36,7 +36,7 @@ private:
 
 public:
   Server();
-  bool loginUser(std::string username);
+  bool loginUser(std::string username, struct sockaddr_in user_address);
   bool logoffUser(std::string username);
   bool followUser(Follow follow);
   void addNotification(const Notification &notification);

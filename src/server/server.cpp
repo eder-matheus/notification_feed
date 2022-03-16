@@ -17,7 +17,7 @@ bool Server::isLogged(const std::string &username) {
   return logged_users_.find(username) != logged_users_.end();
 }
 
-bool Server::loginUser(std::string username) {
+bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
   if (users_.find(username) != users_.end()) { // user already exists on the db
     User &user = users_[username];
     if (user.getSessions() >= MAX_SESSIONS) {
@@ -28,6 +28,8 @@ bool Server::loginUser(std::string username) {
     users_[username] = User(username);
     users_[username].incrementSessions();
   }
+
+  logged_users_[username].push_back(user_address);
 
   return true;
 }
