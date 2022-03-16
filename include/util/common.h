@@ -4,9 +4,11 @@
 #define MAX_SESSIONS 2
 #define PORT 4000
 #define BUFFER_SIZE 200
-#define CMD_OK "1 "
-#define CMD_FAIL "0 "
-#define CMD_404 "9 "
+#define REC_WAIT_LIMIT 4
+#define REC_WAIT 1
+#define CMD_OK "1\n"
+#define CMD_FAIL "0\n"
+#define CMD_404 "9\n"
 
 enum class CmdType { Send, Follow, Login, Receive, Logoff, Confirmation, Error };
 

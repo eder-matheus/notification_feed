@@ -3,6 +3,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/time.h>
 
 enum class CmdType;
 
@@ -14,6 +15,7 @@ private:
 
   // attributes for client socket
   int socket_;
+  struct timeval socket_time_;
   struct sockaddr_in server_address_, from_;
   struct hostent *server_;
 

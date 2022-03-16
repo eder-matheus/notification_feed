@@ -12,7 +12,7 @@ private:
 
 public:
   Ui(FileType);
-  void textBlock(UiType, std::string, std::string = "0", unsigned long int timestamp = -1);
+  void textBlock(UiType, std::string, std::string = "0", unsigned long int timestamp = 0);
   void asciiArt();
   void loadingInfo();
 };

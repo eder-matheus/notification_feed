@@ -62,7 +62,7 @@ void *Client::commandToServer(void *args) {
   char packet[BUFFER_SIZE];
   CmdType type;
   std::string server_answer = CMD_404;  
-  int n = 0, time_limit = 3;
+  int n = 0, time_limit = REC_WAIT_LIMIT;
 
   memset(packet, 0, BUFFER_SIZE);
   codificatePackage(packet, CmdType::Login, _this->username_);
@@ -84,6 +84,7 @@ void *Client::commandToServer(void *args) {
   while (true) {
 
     std::getline(std::cin, input);
+
     if (std::cin.eof() || _interruption_) {
       input = "LOGOFF " + _this->username_;
     }
@@ -142,6 +143,7 @@ void *Client::receiveFromServer(void *args) {
 }
 
 void Client::createConnection(char *server, std::string gate) {
+
   pthread_t senderTid;
   pthread_t receiverTid;
 
@@ -151,6 +153,9 @@ void Client::createConnection(char *server, std::string gate) {
   } else {
     if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
       std::cout << "\nfailed to create socket\n";
+    socket_time_.tv_sec = REC_WAIT;
+    socket_time_.tv_usec = 0;
+    setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time_, sizeof(struct timeval));
     server_address_.sin_family = AF_INET;
     server_address_.sin_port = htons(std::stoi(gate));
     server_address_.sin_addr = *((struct in_addr *)server_->h_addr);
@@ -176,8 +181,7 @@ std::string Client::checkServerAnswer() {
                  (struct sockaddr *) &from_, &length);
 
   if (n < 0) {
-    std::cout << "\n failed to receive \n";
-    // sleep SLEEP PATTERN
+    std::cout << "\nfailed to receive confirmation from server! \n";
   }
   
   received_packet_data = decodificatePackage(confirmation_packet);
@@ -199,10 +203,11 @@ std::string Client::tryCommand(char *packet, int time_limit) {
     }
     else {
       server_answer = checkServerAnswer();
-      secs_waiting_answer++; // SLEEP PATTERN
+      server_answer.append("\n"); //THIS NEEDS TO BE DEALT WITH
+      secs_waiting_answer++;
+      std::cout << "waited seconds: " << secs_waiting_answer << "\n";
     }
   }
-  
-  server_answer.append(" ");
+
   return server_answer;
 }
