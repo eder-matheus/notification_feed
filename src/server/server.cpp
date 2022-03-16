@@ -199,16 +199,25 @@ void *Server::receiveCommand(void *args) {
 void *Server::sendNotifications(void *args) {
   Server *_this = (Server *)args;
   std::cout << "Read to send notifications\n";
+  std::vector<std::string> logged_users;
   while (true) {
     for (auto &notification : _this->pending_notifications_) {
       const auto &user = notification.first;
       if (_this->isLogged(user)) {
+        logged_users.push_back(user);
         auto &notification_ids = notification.second;
-        for (int i = 0; notification_ids.size(); i++) {
-          if (!_this->notificationToUser(user, notification_ids[i]))
-            std::cout << "MESSAGE COULD NOT BE SENT TO USER\n" << std::endl;
+        for (int i = 0; i < notification_ids.size(); i++) {
+          if (!_this->notificationToUser(user, notification_ids[i])) {
+            std::cout << "[ERROR] Notification not sent\n";
+          }
+          else {
+            std::cout << "Notification sent\n";
+          }
         }
       }
+    }
+    for (std::string user : logged_users) {
+      _this->pending_notifications_.erase(user);
     }
   }
 }
