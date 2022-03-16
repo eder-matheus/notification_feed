@@ -96,8 +96,10 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   for (struct sockaddr_in &addr : client_addresses) {
     n = sendto(socket_, packet, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
                sizeof(struct sockaddr));
-    if (n < 0)
+    if (n < 0) {
       printf("[ERROR] Cannot send to client.");
+      return false;
+    }
     // receive visualization confirmation
   }
 
@@ -167,7 +169,7 @@ void *Server::receiveCommand(void *args) {
       // change db
     } else if (received_command == "login") {
       std::string username = decoded_packet[1];
-      bool login_ok = _this->loginUser(username);
+      bool login_ok = _this->loginUser(username, client_address);
       if (login_ok) {
         std::cout << username << " successfully logged.\n";
         // send confirmation to client
