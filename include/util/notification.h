@@ -15,7 +15,7 @@ public:
   Notification(std::string message, unsigned long int timestamp, std::string username);
   int getId() const;
   void setId(long int id);
-  int getTimestamp() const;
+  unsigned long int getTimestamp() const;
   void setTimestamp(int timestamp);
   int getLength();
   int getPendingReceivers();
