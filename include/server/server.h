@@ -21,7 +21,8 @@ private:
   std::map<std::string, std::vector<long int>> pending_notifications_;
   // this id is used to define the ids for new notifications added
   // should be stored on the database
-  long int new_notification_id_;
+  // TEMP: set it as zero, change after implement DB
+  long int new_notification_id_ = 0;
   // map that stores the logged users
   // mapping the users with the addresses that are used by them
   std::unordered_map<std::string, std::vector<struct sockaddr_in>>
