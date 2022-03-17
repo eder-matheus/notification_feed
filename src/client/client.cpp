@@ -124,19 +124,19 @@ void *Client::receiveFromServer(void *args) {
   while (true) {
     if (_this->ready_to_receive_) {
       memset(notification_packet, 0, BUFFER_SIZE);
-
       int n = recvfrom(_this->socket_, notification_packet, BUFFER_SIZE, 0,
                        (struct sockaddr *) &_this->from_, &length);
-      if (n < 0)
+      if (n < 0) {
         std::cout << "\n failed to receive \n";
+      } else {
+        std::cout << "received from server: " << notification_packet << "\n";
 
-      std::cout << "received from server: " << notification_packet << "\n";
-
-      received_packet_data = decodificatePackage(notification_packet);
-      std::string message = received_packet_data[1];
-      unsigned long int timestamp = std::stoul(received_packet_data[2], nullptr, 10);
-      std::string username = received_packet_data[3];
-      ui.textBlock(UiType::Message, message, username, timestamp);
+        received_packet_data = decodificatePackage(notification_packet);
+        std::string message = received_packet_data[1];
+        unsigned long int timestamp = std::stoul(received_packet_data[2], nullptr, 10);
+        std::string username = received_packet_data[3];
+        ui.textBlock(UiType::Message, message, username, timestamp);
+      }
     }
   }
   return 0;
