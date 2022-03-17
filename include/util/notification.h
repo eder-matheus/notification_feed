@@ -16,7 +16,7 @@ public:
   int getId() const;
   void setId(long int id);
   unsigned long int getTimestamp() const;
-  void setTimestamp(int timestamp);
+  void setTimestamp(unsigned long int timestamp);
   int getLength();
   int getPendingReceivers();
   void setPendingReceivers(int pending_receivers);
