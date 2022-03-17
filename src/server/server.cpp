@@ -89,7 +89,7 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   // send to client
   int n;
   char packet[BUFFER_SIZE]; // convert notification to string
-  codificatePackage(packet, CmdType::Receive, notification.getMessage(),
+  codificatePackage(packet, CmdType::Send, notification.getMessage(),
                     notification.getTimestamp(), notification.getUsername());
   std::vector<struct sockaddr_in>
       client_addresses = logged_users_[user]; // get client addresses from map
