@@ -11,7 +11,8 @@
 #include <unistd.h>
 #include <cstring>
 
-Server::Server() {}
+Server::Server()
+    : new_notification_id_(0) {}
 
 bool Server::isLogged(const std::string &username) {
   return logged_users_.find(username) != logged_users_.end();
@@ -128,7 +129,6 @@ void *Server::receiveCommand(void *args) {
                  (struct sockaddr *)&(client_address), &(client_length));
     if (n < 0)
       printf("[ERROR] Cannot receive command from client.");
-    printf("Received a datagram: %s\n", packet);
 
     std::vector<std::string> decoded_packet = decodificatePackage(packet);
     std::string received_command = decoded_packet[0];
@@ -139,9 +139,9 @@ void *Server::receiveCommand(void *args) {
       std::string username = decoded_packet[3];
 
       Notification received_notification(message, timestamp, username);
+      pthread_mutex_lock(&_this->lock_);
       _this->addNotification(received_notification);
-      std::cout << "Received notification: ";
-      received_notification.print();
+      pthread_mutex_unlock(&_this->lock_);
       // update db
     } else if (received_command == "follow") {
       std::string followed_user = decoded_packet[1];
@@ -180,7 +180,6 @@ void *Server::receiveCommand(void *args) {
         std::cout << "\t" << word << "\n";
       }
     }
-    std::cout << "end loop\n";
   }
   return 0;
 }
@@ -190,6 +189,7 @@ void *Server::sendNotifications(void *args) {
   std::cout << "Read to send notifications\n";
   std::vector<std::string> logged_users;
   while (true) {
+    pthread_mutex_lock(&_this->lock_);
     for (auto &notification : _this->pending_notifications_) {
       const auto &user = notification.first;
       if (_this->isLogged(user)) {
@@ -208,6 +208,7 @@ void *Server::sendNotifications(void *args) {
     for (std::string user : logged_users) {
       _this->pending_notifications_.erase(user);
     }
+    pthread_mutex_unlock(&_this->lock_);
   }
 }
 
@@ -226,7 +227,7 @@ void Server::createConnection() {
            sizeof(struct sockaddr)) < 0)
     printf("[ERROR] Cannot perform binding.");
 
-  socklen_t client_length = sizeof(struct sockaddr_in);
+  pthread_mutex_init(&lock_, NULL);
 
   pthread_t senderTid;
   pthread_t receiverTid;
@@ -236,6 +237,8 @@ void Server::createConnection() {
 
   pthread_join(receiverTid, NULL);
   pthread_join(senderTid, NULL);
+
+  pthread_mutex_destroy(&lock_);
 }
 
 int Server::sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address) {

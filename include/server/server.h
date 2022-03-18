@@ -4,6 +4,7 @@
 #include <map>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -31,6 +32,9 @@ private:
   // attributes for server data
   int socket_;
   struct sockaddr_in server_address_;
+
+  // attributes for mutex and semaphores
+  pthread_mutex_t lock_;
 
   // aux functions
   bool isLogged(const std::string &username);
