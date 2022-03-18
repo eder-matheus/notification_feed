@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -35,6 +36,7 @@ private:
 
   // attributes for mutex and semaphores
   pthread_mutex_t lock_;
+  sem_t sem_full_;
 
   // aux functions
   bool isLogged(const std::string &username);

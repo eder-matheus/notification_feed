@@ -142,6 +142,7 @@ void *Server::receiveCommand(void *args) {
       pthread_mutex_lock(&_this->lock_);
       _this->addNotification(received_notification);
       pthread_mutex_unlock(&_this->lock_);
+      sem_post(&_this->sem_full_);
       // update db
     } else if (received_command == "follow") {
       std::string followed_user = decoded_packet[1];
@@ -189,6 +190,9 @@ void *Server::sendNotifications(void *args) {
   std::cout << "Read to send notifications\n";
   std::vector<std::string> logged_users;
   while (true) {
+    sem_wait(&_this->sem_full_);
+    // print for testing
+    std::cout << "semaforo full\n";
     pthread_mutex_lock(&_this->lock_);
     for (auto &notification : _this->pending_notifications_) {
       const auto &user = notification.first;
@@ -227,6 +231,7 @@ void Server::createConnection() {
            sizeof(struct sockaddr)) < 0)
     printf("[ERROR] Cannot perform binding.");
 
+  sem_init(&sem_full_, 0, 0);
   pthread_mutex_init(&lock_, NULL);
 
   pthread_t senderTid;
