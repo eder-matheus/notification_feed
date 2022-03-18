@@ -142,11 +142,6 @@ void *Server::receiveCommand(void *args) {
       _this->addNotification(received_notification);
       std::cout << "Received notification: ";
       received_notification.print();
-
-      // send confirmation to client
-      if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
-        printf("[ERROR] Cannot send notification confirmation to client.\n");
-      }
       // update db
     } else if (received_command == "follow") {
       std::string followed_user = decoded_packet[1];
@@ -155,16 +150,8 @@ void *Server::receiveCommand(void *args) {
       bool follow_ok = _this->followUser(follow);
       if (follow_ok) {
         std::cout << username << " followed " << followed_user << "\n";
-        // send confirmation to client
-        if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
-          printf("[ERROR] Cannot send follow confirmation to client.\n");
-        }
       } else {
         std::cout << "[ERROR]" << followed_user << " not found.\n";
-        // send confirmation to client
-        if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
-          printf("[ERROR] Cannot send follow confirmation to client.\n");
-        }
       }
       // change db
     } else if (received_command == "login") {
@@ -172,26 +159,15 @@ void *Server::receiveCommand(void *args) {
       bool login_ok = _this->loginUser(username, client_address);
       if (login_ok) {
         std::cout << username << " successfully logged.\n";
-        // send confirmation to client
-        if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
-          printf("[ERROR] Cannot send login confirmation to client.\n");
-        }
       } else {
         std::cout << "[ERROR]" << username << " has reached max sessions\n";
-        // send confirmation to client
-        if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
-          printf("[ERROR] Cannot send login confirmation to client.\n");
-        }
       }
     } else if (received_command == "logoff") {
       std::string username = decoded_packet[1];
       _this->logoffUser(username);
-      // send confirmation to client
-      if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
-        printf("[ERROR] Cannot send logoff confirmation to client.\n");
-      }
     } else {
-      std::cout << "[ERROR] Command not identified\nDecoded packet:\n";
+      std::cout << "[ERROR] Command not identified\n";
+      std::cout << "Decoded packet:\n";
       for (std::string word : decoded_packet) {
         std::cout << "\t" << word << "\n";
       }
