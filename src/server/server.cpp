@@ -159,8 +159,16 @@ void *Server::receiveCommand(void *args) {
       bool login_ok = _this->loginUser(username, client_address);
       if (login_ok) {
         std::cout << username << " successfully logged.\n";
+        // send confirmation to client
+        if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
+          printf("[ERROR] Cannot send login confirmation to client.\n");
+        }
       } else {
         std::cout << "[ERROR]" << username << " has reached max sessions\n";
+        // send confirmation to client
+        if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
+          printf("[ERROR] Cannot send login confirmation to client.\n");
+        }
       }
     } else if (received_command == "logoff") {
       std::string username = decoded_packet[1];
