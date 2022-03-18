@@ -35,10 +35,7 @@ void Ui::textBlock(UiType label, std::string message, std::string sender,
 
   switch (label) {
   case UiType::Message:
-    std::cout << "A NOTIFICATION FROM:\n";
-    std::cout << "** " << sender << "\n";
-    std::cout << " - " << message << "\n";
-    std::cout << " - (" << timestamp << ")\n";
+    std::cout << sender << " says: " << message << "(" << timestamp << ")\n";
     break;
   case UiType::Warn:
     std::cout << "WARNING\n";
@@ -55,8 +52,7 @@ void Ui::textBlock(UiType label, std::string message, std::string sender,
   default:
     break;
   }
-  std::cout << "###"
-            << "\n\n";
+  std::cout << "\n";
 }
 
 void Ui::asciiArt() {
