@@ -28,5 +28,5 @@ public:
   static void *receiveFromServer(void *);
   void createConnection(char *, std::string);
   std::string checkServerAnswer();
-  std::string tryCommand(char *, int);
+  std::string tryCommand(char *, int, bool);
 };

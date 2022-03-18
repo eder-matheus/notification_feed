@@ -66,13 +66,13 @@ void *Client::commandToServer(void *args) {
 
   memset(packet, 0, BUFFER_SIZE);
   codificatePackage(packet, CmdType::Login, _this->username_);
-  server_answer = _this->tryCommand(packet, time_limit);
+  server_answer = _this->tryCommand(packet, time_limit, true);
 
   if (server_answer == CMD_FAIL) {
-    std::cout << "already logged\n";
+    std::cout << "[ERROR] You reached the max simultaneous sessions\n";
     exit(0);
   } else if (server_answer == CMD_404) {
-    std::cout << "server off, try again later\n";
+    std::cout << "[ERROR] Server off, try again later\n";
     exit(0);
   }
 
@@ -102,7 +102,7 @@ void *Client::commandToServer(void *args) {
 
       memset(packet, 0, BUFFER_SIZE);
       codificatePackage(packet, type, content, timestamp, _this->username_);
-      server_answer = _this->tryCommand(packet, time_limit);    
+      server_answer = _this->tryCommand(packet, time_limit, false);
       
       // need to add a check for the return of the server
       if (type == CmdType::Logoff) {
@@ -126,9 +126,7 @@ void *Client::receiveFromServer(void *args) {
       memset(notification_packet, 0, BUFFER_SIZE);
       int n = recvfrom(_this->socket_, notification_packet, BUFFER_SIZE, 0,
                        (struct sockaddr *) &_this->from_, &length);
-      if (n < 0) {
-        std::cout << "\n failed to receive \n";
-      } else {
+      if (n >= 0) {
         std::cout << "received from server: " << notification_packet << "\n";
 
         received_packet_data = decodificatePackage(notification_packet);
@@ -189,23 +187,23 @@ std::string Client::checkServerAnswer() {
   return received_packet_data[0];
 }
 
-std::string Client::tryCommand(char *packet, int time_limit) {
+std::string Client::tryCommand(char *packet, int time_limit, bool check_answer) {
 
-  int secs_waiting_answer = 0, n;
+  int secs_waiting_answer = 0;
+  int n = -1;
   std::string server_answer = CMD_404;
 
-  while(secs_waiting_answer < time_limit && server_answer == CMD_404) {
+  while(secs_waiting_answer < time_limit && server_answer == CMD_404 && n < 0) {
   
     n = sendto(socket_, packet, strlen(packet), 0, (const struct sockaddr *) &server_address_, 
      	       sizeof(struct sockaddr_in));
     if (n < 0) {
-      std::cout << "failed to send cmd\n";
+      std::cout << "[ERROR] Failed to send command\n";
     }
-    else {
+    else if (check_answer) {
       server_answer = checkServerAnswer();
       server_answer.append("\n"); //THIS NEEDS TO BE DEALT WITH
       secs_waiting_answer++;
-      std::cout << "waited seconds: " << secs_waiting_answer << "\n";
     }
   }
 
