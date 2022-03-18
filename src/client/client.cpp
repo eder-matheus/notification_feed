@@ -39,16 +39,12 @@ CmdType Client::validateCommand(std::string input, std::string &content) {
 
   CmdType type;
   if (command == "FOLLOW") {
-    std::cout << "follow command\n";
     type = CmdType::Follow;
   } else if (command == "SEND") {
-    std::cout << "send command\n";
     type = CmdType::Send;
   } else if (command == "LOGOFF") {
-    std::cout << "logoff\n";
     type = CmdType::Logoff;
   } else {
-    std::cout << "invalid command\n";
     type = CmdType::Error;
   }
 
@@ -77,8 +73,6 @@ void *Client::commandToServer(void *args) {
   }
 
   _this->ready_to_receive_ = true;
-  Ui ui(FileType::None);
-  ui.textBlock(UiType::Message, "teste");
 
   signal(SIGINT, sigintHandler);
   while (true) {
@@ -92,8 +86,7 @@ void *Client::commandToServer(void *args) {
     type = _this->validateCommand(input, content);
 
     if (type == CmdType::Error) {
-      std::cout << "TO KILL LOOP\n";
-      return 0;
+      std::cout << "[ERROR] Invalid command\n";
     } else {
       // send packet to server
       unsigned long int timestamp =
@@ -103,13 +96,11 @@ void *Client::commandToServer(void *args) {
       memset(packet, 0, BUFFER_SIZE);
       codificatePackage(packet, type, content, timestamp, _this->username_);
       server_answer = _this->tryCommand(packet, time_limit, false);
-      
-      // need to add a check for the return of the server
+
       if (type == CmdType::Logoff) {
         exit(0);
       }
     }
-    std::cout << "end of loop\n";
   }
 }
 
@@ -117,7 +108,7 @@ void *Client::receiveFromServer(void *args) {
   Client *_this = (Client *)args;
   Ui ui(FileType::None);
 
-  std::cout << "receiving\n";
+  std::cout << "Waiting for notifications...\n";
   char notification_packet[BUFFER_SIZE];
   unsigned int length = sizeof(struct sockaddr_in);
   std::vector<std::string> received_packet_data;
@@ -127,8 +118,6 @@ void *Client::receiveFromServer(void *args) {
       int n = recvfrom(_this->socket_, notification_packet, BUFFER_SIZE, 0,
                        (struct sockaddr *) &_this->from_, &length);
       if (n >= 0) {
-        std::cout << "received from server: " << notification_packet << "\n";
-
         received_packet_data = decodificatePackage(notification_packet);
         std::string message = received_packet_data[1];
         unsigned long int timestamp = std::stoul(received_packet_data[2], nullptr, 10);
@@ -147,10 +136,10 @@ void Client::createConnection(char *server, std::string gate) {
 
   server_ = gethostbyname(server);
   if (server == NULL) {
-    std::cout << "\nhost does not exist\n";
+    std::cout << "[ERROR] Host does not exist\n";
   } else {
     if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-      std::cout << "\nfailed to create socket\n";
+      std::cout << "[ERROR] Failed to create socket\n";
     socket_time_.tv_sec = REC_WAIT;
     socket_time_.tv_usec = 0;
     setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time_, sizeof(struct timeval));
@@ -179,7 +168,7 @@ std::string Client::checkServerAnswer() {
                  (struct sockaddr *) &from_, &length);
 
   if (n < 0) {
-    std::cout << "\nfailed to receive confirmation from server! \n";
+    std::cout << "[ERROR] Failed to receive confirmation from server\n";
   }
   
   received_packet_data = decodificatePackage(confirmation_packet);
