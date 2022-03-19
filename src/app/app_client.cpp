@@ -41,5 +41,8 @@ int main(int argc, char *argv[]) {
 
   client.createConnection(server, gate);
 
+  Ui exit(FileType::Exit);
+  exit.asciiArt();
+
   return 0;
 }

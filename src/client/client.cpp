@@ -65,10 +65,10 @@ void *Client::commandToServer(void *args) {
   if (server_answer == CMD_FAIL) {
     _this->ui.print(UiType::Error,
                     "You reached the max simultaneous sessions.");
-    exit(0);
+    return 0;
   } else if (server_answer == CMD_404) {
     _this->ui.print(UiType::Error, "Server off, try again later.");
-    exit(0);
+    return 0;
   }
 
   _this->ready_to_receive_ = true;
@@ -100,7 +100,7 @@ void *Client::commandToServer(void *args) {
         server_answer = _this->tryCommand(packet, time_limit, false);
 
         if (type == CmdType::Logoff) {
-          exit(0);
+          return 0;
         }
       }
     }
