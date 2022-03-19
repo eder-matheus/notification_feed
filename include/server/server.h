@@ -1,7 +1,7 @@
 #include "common.h"
 #include "notification.h"
-#include "user.h"
 #include "ui.h"
+#include "user.h"
 #include <map>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -57,7 +57,8 @@ public:
   static void *sendNotifications(void *);
   static void *receiveCommand(void *);
   void createConnection();
-  int sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address);
+  int sendCmdStatus(std::string status, char *confirmation_packet,
+                    struct sockaddr_in client_address);
   void sendStoredNotifications(std::string username);
   bool readDatabase();
   void addUserRelationToDB(std::string user, std::string follower);

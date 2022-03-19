@@ -28,13 +28,14 @@ Ui::Ui(FileType use) {
 // destructor should close file
 
 void Ui::print(UiType label, std::string message, std::string sender,
-                   unsigned long int timestamp) {
+               unsigned long int timestamp) {
 
   std::cout << "\n";
 
   switch (label) {
   case UiType::Message:
-    std::cout << "[MESSAGE]" << sender << " says: " << message << "(" << timestamp << ")\n";
+    std::cout << "[MESSAGE]" << sender << " says: " << message << "("
+              << timestamp << ")\n";
     break;
   case UiType::Warn:
     std::cout << "[WARN] " << message << "\n";

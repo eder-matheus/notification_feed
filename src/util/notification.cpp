@@ -23,7 +23,9 @@ void Notification::setId(long int id) { id_ = id; }
 
 unsigned long int Notification::getTimestamp() const { return timestamp_; }
 
-void Notification::setTimestamp(unsigned long int timestamp) { timestamp_ = timestamp; }
+void Notification::setTimestamp(unsigned long int timestamp) {
+  timestamp_ = timestamp;
+}
 
 int Notification::getLength() { return length_; }
 

@@ -1,4 +1,5 @@
 #include "server.h"
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <netdb.h>
@@ -10,17 +11,16 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include <cstring>
 
-Server::Server()
-    : new_notification_id_(0), ui(FileType::None) {}
+Server::Server() : new_notification_id_(0), ui(FileType::None) {}
 
 bool Server::isLogged(const std::string &username) {
   return logged_users_.find(username) != logged_users_.end();
 }
 
 bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
-  if (users_.find(username) != users_.end()) { // user already exists on the data structures
+  if (users_.find(username) !=
+      users_.end()) { // user already exists on the data structures
     User &user = users_[username];
     if (user.getSessions() >= MAX_SESSIONS) {
       return false;
@@ -31,13 +31,14 @@ bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
     users_[username].incrementSessions();
   }
 
-  logged_users_[username].push_back(user_address);  
+  logged_users_[username].push_back(user_address);
 
   return true;
 }
 
 bool Server::logoffUser(std::string username) {
-  if (users_.find(username) != users_.end()) { // user already exists on the data structures
+  if (users_.find(username) !=
+      users_.end()) { // user already exists on the data structures
     User &user = users_[username];
     // std::cout << username << " is goint to logff\n";
     user.decrementSessions();
@@ -50,7 +51,7 @@ bool Server::logoffUser(std::string username) {
 
     return true;
   }
-  
+
   return false;
 }
 
@@ -59,7 +60,8 @@ bool Server::followUser(Follow follow) {
   std::string user_followed = follow.user_followed;
 
   if (users_.find(user_followed) != users_.end() &&
-      curr_user != user_followed) { // user exists on the data structures and it is not the current user
+      curr_user != user_followed) { // user exists on the data structures and it
+                                    // is not the current user
     User &user = users_[user_followed];
     user.addFollower(curr_user);
     addUserRelationToDB(user_followed, curr_user);
@@ -97,8 +99,8 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   char packet[BUFFER_SIZE]; // convert notification to string
   codificatePackage(packet, CmdType::Send, notification.getMessage(),
                     notification.getTimestamp(), notification.getUsername());
-  std::vector<struct sockaddr_in>
-      client_addresses = logged_users_[user]; // get client addresses from map
+  std::vector<struct sockaddr_in> client_addresses =
+      logged_users_[user]; // get client addresses from map
   for (struct sockaddr_in &addr : client_addresses) {
     n = sendto(socket_, packet, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
                sizeof(struct sockaddr));
@@ -123,9 +125,9 @@ void Server::sendStoredNotifications(std::string username) {
 
   auto itr = pending_notifications_.find(username);
   if (itr != pending_notifications_.end()) {
-    std::vector<long int> pending  = itr->second;
+    std::vector<long int> pending = itr->second;
 
-    for(int i = 0; i < pending.size(); i++) {
+    for (int i = 0; i < pending.size(); i++) {
       // std::cout << "notification: " << i << "\n";
       notificationToUser((const std::string &)username, pending[i]);
     }
@@ -194,7 +196,8 @@ void *Server::receiveCommand(void *args) {
       Follow follow(username, followed_user);
       bool follow_ok = _this->followUser(follow);
       if (follow_ok) {
-        _this->ui.print(UiType::Success, username + " followed " + followed_user + ".");
+        _this->ui.print(UiType::Success,
+                        username + " followed " + followed_user + ".");
       } else {
         _this->ui.print(UiType::Error, followed_user + " not found.");
       }
@@ -206,15 +209,19 @@ void *Server::receiveCommand(void *args) {
       if (login_ok) {
         _this->ui.print(UiType::Success, username + " logged.");
         // send confirmation to client
-        if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
-          _this->ui.print(UiType::Error, "Cannot send login confirmation to client.\n");
+        if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) <
+            0) {
+          _this->ui.print(UiType::Error,
+                          "Cannot send login confirmation to client.\n");
         }
         _this->sendStoredNotifications(username);
       } else {
         _this->ui.print(UiType::Error, username + " has reached max sessions.");
         // send confirmation to client
-        if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
-          _this->ui.print(UiType::Error, "Cannot send login confirmation to client.\n");
+        if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet,
+                                 client_address) < 0) {
+          _this->ui.print(UiType::Error,
+                          "Cannot send login confirmation to client.\n");
         }
       }
       pthread_mutex_unlock(&_this->lock_);
@@ -239,21 +246,20 @@ void *Server::sendNotifications(void *args) {
       // std::cout << "there is a pending notification\n";
       const auto &user = notification.first;
       if (_this->isLogged(user)) {
-        //std::cout << user << " is on\n";      
+        // std::cout << user << " is on\n";
         logged_users.push_back(user);
         auto &notification_ids = notification.second;
         for (int i = 0; i < notification_ids.size(); i++) {
           if (!_this->notificationToUser(user, notification_ids[i])) {
             _this->ui.print(UiType::Error, "Notification not sent.");
-          }
-          else {
+          } else {
             _this->ui.print(UiType::Success, "Notification sent.");
           }
         }
       }
     }
     for (std::string user : logged_users) {
-       _this->pending_notifications_.erase(user);
+      _this->pending_notifications_.erase(user);
       // std::cout << "erased pending for: " << user << "\n";
     }
     logged_users.clear();
@@ -295,10 +301,12 @@ void Server::createConnection() {
   pthread_mutex_destroy(&lock_);
 }
 
-int Server::sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address) {
+int Server::sendCmdStatus(std::string status, char *confirmation_packet,
+                          struct sockaddr_in client_address) {
   memset(confirmation_packet, 0, BUFFER_SIZE);
   codificatePackage(confirmation_packet, CmdType::Confirmation, status);
-  int n = sendto(socket_, confirmation_packet, strlen(confirmation_packet), 0,
+  int n =
+      sendto(socket_, confirmation_packet, strlen(confirmation_packet), 0,
              (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));
 
   return n;

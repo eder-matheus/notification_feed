@@ -3,8 +3,8 @@
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <sys/time.h>
+#include <sys/types.h>
 
 enum class CmdType;
 
