@@ -7,7 +7,9 @@ elif [ "$1" = "nuke" ]; then
 	rm -rf client_env
 	rm -rf server_env
 else
-	mkdir build
+	if [ ! -d "build" ]; then
+		mkdir build
+	fi
 	cd build
 	cmake ..
 	make -j 4
