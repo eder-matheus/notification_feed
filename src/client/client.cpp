@@ -93,12 +93,16 @@ void *Client::commandToServer(void *args) {
           duration_cast<milliseconds>(system_clock::now().time_since_epoch())
               .count();
 
-      memset(packet, 0, BUFFER_SIZE);
-      codificatePackage(packet, type, content, timestamp, _this->username_);
-      server_answer = _this->tryCommand(packet, time_limit, false);
+      if (type == CmdType::Send && content.size() > 128) {
+        std::cout << "[ERROR] Message has more than 128 characters\n";
+      } else {
+        memset(packet, 0, BUFFER_SIZE);
+        codificatePackage(packet, type, content, timestamp, _this->username_);
+        server_answer = _this->tryCommand(packet, time_limit, false);
 
-      if (type == CmdType::Logoff) {
-        exit(0);
+        if (type == CmdType::Logoff) {
+          exit(0);
+        }
       }
     }
   }
