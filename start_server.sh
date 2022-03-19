@@ -6,7 +6,9 @@ fi
 
 if [ -d "server_env" ]; then
 	cd server_env
-	ln -s ../build/src/server/server .
+	if [ ! -f "server" ]; then
+		ln -s ../build/src/server/server .
+	fi
 	./server
 	cd -
 fi
