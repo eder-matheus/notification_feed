@@ -1,4 +1,5 @@
 #include "server.h"
+#include <fstream>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -19,7 +20,7 @@ bool Server::isLogged(const std::string &username) {
 }
 
 bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
-  if (users_.find(username) != users_.end()) { // user already exists on the db
+  if (users_.find(username) != users_.end()) { // user already exists on the data structures
     User &user = users_[username];
     if (user.getSessions() >= MAX_SESSIONS) {
       return false;
@@ -36,7 +37,7 @@ bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
 }
 
 bool Server::logoffUser(std::string username) {
-  if (users_.find(username) != users_.end()) { // user already exists on the db
+  if (users_.find(username) != users_.end()) { // user already exists on the data structures
     User &user = users_[username];
     // std::cout << username << " is goint to logff\n";
     user.decrementSessions();
@@ -58,9 +59,10 @@ bool Server::followUser(Follow follow) {
   std::string user_followed = follow.user_followed;
 
   if (users_.find(user_followed) != users_.end() &&
-      curr_user != user_followed) { // user exists on the db and it is not the current user
+      curr_user != user_followed) { // user exists on the data structures and it is not the current user
     User &user = users_[user_followed];
     user.addFollower(curr_user);
+    addUserRelationToDB(user_followed, curr_user);
     return true;
   }
 
@@ -129,6 +131,31 @@ void Server::sendStoredNotifications(std::string username) {
     }
     pending_notifications_.erase(username);
   }
+}
+
+bool Server::readDatabase() {
+  std::string line;
+  std::ifstream db(db_file_name_);
+  if (db.is_open()) {
+    while (std::getline(db, line)) {
+      std::string user = line.substr(0, line.find(' '));
+      line.erase(0, line.find(' ') + sizeof(char));
+      std::string follower = line;
+      users_[user] = User(user);
+      users_[user].addFollower(follower);
+    }
+  } else {
+    return false;
+  }
+
+  return true;
+}
+
+void Server::addUserRelationToDB(std::string user, std::string follower) {
+  std::ofstream db;
+  db.open(db_file_name_, std::ios::app);
+  db << user << " " << follower << "\n";
+  db.close();
 }
 
 void *Server::receiveCommand(void *args) {
@@ -244,6 +271,10 @@ void Server::createConnection() {
   if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
     printf("[ERROR] Cannot open socket.");
     exit(1);
+  }
+
+  if (!readDatabase()) {
+    std::cout << "[WARN] File " << db_file_name_ << " not found.\n";
   }
 
   server_address_.sin_family = AF_INET;

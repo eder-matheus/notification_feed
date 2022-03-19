@@ -38,6 +38,9 @@ private:
   pthread_mutex_t lock_;
   sem_t sem_full_;
 
+  // constants
+  const std::string db_file_name_ = "database.txt";
+
   // aux functions
   bool isLogged(const std::string &username);
 
@@ -53,4 +56,6 @@ public:
   void createConnection();
   int sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address);
   void sendStoredNotifications(std::string username);
+  bool readDatabase();
+  void addUserRelationToDB(std::string user, std::string follower);
 };
