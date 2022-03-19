@@ -13,7 +13,7 @@
 #include <cstring>
 
 Server::Server()
-    : new_notification_id_(0) {}
+    : new_notification_id_(0), ui(FileType::None) {}
 
 bool Server::isLogged(const std::string &username) {
   return logged_users_.find(username) != logged_users_.end();
@@ -103,7 +103,7 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
     n = sendto(socket_, packet, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
                sizeof(struct sockaddr));
     if (n < 0) {
-      printf("[ERROR] Cannot send to client.");
+      ui.print(UiType::Error, "Cannot send to client.");
       return false;
     }
     // receive visualization confirmation
@@ -159,8 +159,8 @@ void Server::addUserRelationToDB(std::string user, std::string follower) {
 }
 
 void *Server::receiveCommand(void *args) {
-  std::cout << "Read to receive commands\n";
   Server *_this = (Server *)args;
+  _this->ui.print(UiType::Info, "Read to receive commands.");
   struct sockaddr_in client_address;
   socklen_t client_length = sizeof(struct sockaddr_in);
   int n;
@@ -172,7 +172,7 @@ void *Server::receiveCommand(void *args) {
     n = recvfrom(_this->socket_, packet, BUFFER_SIZE, 0,
                  (struct sockaddr *)&(client_address), &(client_length));
     if (n < 0)
-      printf("[ERROR] Cannot receive command from client.");
+      _this->ui.print(UiType::Error, "Cannot receive command from client.");
 
     std::vector<std::string> decoded_packet = decodificatePackage(packet);
     std::string received_command = decoded_packet[0];
@@ -194,9 +194,9 @@ void *Server::receiveCommand(void *args) {
       Follow follow(username, followed_user);
       bool follow_ok = _this->followUser(follow);
       if (follow_ok) {
-        std::cout << username << " followed " << followed_user << "\n";
+        _this->ui.print(UiType::Success, username + " followed " + followed_user + ".");
       } else {
-        std::cout << "[ERROR]" << followed_user << " not found.\n";
+        _this->ui.print(UiType::Error, followed_user + " not found.");
       }
       // change db
     } else if (received_command == "login") {
@@ -204,17 +204,17 @@ void *Server::receiveCommand(void *args) {
       pthread_mutex_lock(&_this->lock_);
       bool login_ok = _this->loginUser(username, client_address);
       if (login_ok) {
-        std::cout << username << " successfully logged.\n";
+        _this->ui.print(UiType::Success, username + " logged.");
         // send confirmation to client
         if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
-          printf("[ERROR] Cannot send login confirmation to client.\n");
+          _this->ui.print(UiType::Error, "Cannot send login confirmation to client.\n");
         }
         _this->sendStoredNotifications(username);
       } else {
-        std::cout << "[ERROR]" << username << " has reached max sessions\n";
+        _this->ui.print(UiType::Error, username + " has reached max sessions.");
         // send confirmation to client
         if (_this->sendCmdStatus(CMD_FAIL, confirmation_packet, client_address) < 0) {
-          printf("[ERROR] Cannot send login confirmation to client.\n");
+          _this->ui.print(UiType::Error, "Cannot send login confirmation to client.\n");
         }
       }
       pthread_mutex_unlock(&_this->lock_);
@@ -222,11 +222,7 @@ void *Server::receiveCommand(void *args) {
       std::string username = decoded_packet[1];
       _this->logoffUser(username);
     } else {
-      std::cout << "[ERROR] Command not identified\n";
-      std::cout << "Decoded packet:\n";
-      for (std::string word : decoded_packet) {
-        std::cout << "\t" << word << "\n";
-      }
+      _this->ui.print(UiType::Error, "Command not identified.");
     }
   }
   return 0;
@@ -234,7 +230,7 @@ void *Server::receiveCommand(void *args) {
 
 void *Server::sendNotifications(void *args) {
   Server *_this = (Server *)args;
-  std::cout << "Read to send notifications\n";
+  _this->ui.print(UiType::Info, "Read to send notifications.");
   std::vector<std::string> logged_users;
   while (true) {
     sem_wait(&_this->sem_full_);
@@ -248,10 +244,10 @@ void *Server::sendNotifications(void *args) {
         auto &notification_ids = notification.second;
         for (int i = 0; i < notification_ids.size(); i++) {
           if (!_this->notificationToUser(user, notification_ids[i])) {
-            std::cout << "[ERROR] Notification not sent\n";
+            _this->ui.print(UiType::Error, "Notification not sent.");
           }
           else {
-            std::cout << "Notification sent\n";
+            _this->ui.print(UiType::Success, "Notification sent.");
           }
         }
       }
@@ -267,12 +263,12 @@ void *Server::sendNotifications(void *args) {
 
 void Server::createConnection() {
   if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-    printf("[ERROR] Cannot open socket.");
+    ui.print(UiType::Error, "Cannot open socket.");
     exit(1);
   }
 
   if (!readDatabase()) {
-    std::cout << "[WARN] File " << db_file_name_ << " not found.\n";
+    ui.print(UiType::Warn, "File " + db_file_name_ + " not found.");
   }
 
   server_address_.sin_family = AF_INET;
@@ -282,7 +278,7 @@ void Server::createConnection() {
 
   if (bind(socket_, (struct sockaddr *)&server_address_,
            sizeof(struct sockaddr)) < 0)
-    printf("[ERROR] Cannot perform binding.");
+    ui.print(UiType::Error, "Cannot perform binding.");
 
   sem_init(&sem_full_, 0, 0);
   pthread_mutex_init(&lock_, NULL);

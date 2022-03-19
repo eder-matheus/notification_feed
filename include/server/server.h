@@ -1,6 +1,7 @@
 #include "common.h"
 #include "notification.h"
 #include "user.h"
+#include "ui.h"
 #include <map>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -29,6 +30,8 @@ private:
   // mapping the users with the addresses that are used by them
   std::unordered_map<std::string, std::vector<struct sockaddr_in>>
       logged_users_;
+
+  Ui ui;
 
   // attributes for server data
   int socket_;
