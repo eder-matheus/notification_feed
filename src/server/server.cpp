@@ -150,7 +150,9 @@ bool Server::readDatabase() {
       std::string user = line.substr(0, line.find(' '));
       line.erase(0, line.find(' ') + sizeof(char));
       std::string follower = line;
-      users_[user] = User(user);
+      if (users_.find(user) == users_.end()) {
+        users_[user] = User(user);
+      }
       users_[user].addFollower(follower);
     }
   } else {
