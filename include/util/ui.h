@@ -11,6 +11,7 @@ private:
   FileType ui_use;
 
 public:
+  Ui() = default;
   Ui(FileType);
   void print(UiType, std::string, std::string = "0", unsigned long int timestamp = 0);
   void asciiArt();
