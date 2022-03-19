@@ -57,7 +57,8 @@ bool Server::followUser(Follow follow) {
   std::string curr_user = follow.client;
   std::string user_followed = follow.user_followed;
 
-  if (users_.find(user_followed) != users_.end()) { // user exists on the db
+  if (users_.find(user_followed) != users_.end() &&
+      curr_user != user_followed) { // user exists on the db and it is not the current user
     User &user = users_[user_followed];
     user.addFollower(curr_user);
     return true;
