@@ -238,8 +238,6 @@ void *Server::sendNotifications(void *args) {
   std::vector<std::string> logged_users;
   while (true) {
     sem_wait(&_this->sem_full_);
-    // print for testing
-    std::cout << "semaforo full\n";
     pthread_mutex_lock(&_this->lock_);
     for (auto &notification : _this->pending_notifications_) {
       // std::cout << "there is a pending notification\n";
