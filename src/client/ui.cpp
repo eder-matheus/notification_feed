@@ -38,16 +38,13 @@ void Ui::textBlock(UiType label, std::string message, std::string sender,
     std::cout << sender << " says: " << message << "(" << timestamp << ")\n";
     break;
   case UiType::Warn:
-    std::cout << "WARNING\n";
-    std::cout << message << "\n";
+    std::cout << "[WARN] " << message << "\n";
     break;
   case UiType::Error:
-    std::cout << "ERROR\n";
-    std::cout << message << "\n";
+    std::cout << "[ERROR] " << message << "\n";
     break;
   case UiType::Success:
-    std::cout << "SUCCESS\n";
-    std::cout << message << "\n";
+    std::cout << "[SUCCESS] " << message << "\n";
     break;
   default:
     break;
