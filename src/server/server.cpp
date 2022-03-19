@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <signal.h>
 #include <string>
 #include <strings.h>
 #include <sys/socket.h>
