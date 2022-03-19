@@ -1,3 +1,4 @@
+#include "ui.h"
 #include <netdb.h>
 #include <netinet/in.h>
 #include <string>
@@ -18,6 +19,8 @@ private:
   struct timeval socket_time_;
   struct sockaddr_in server_address_, from_;
   struct hostent *server_;
+
+  Ui ui;
 
 public:
   static void sigintHandler(int sig_num);

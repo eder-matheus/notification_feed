@@ -1,18 +1,19 @@
 #include "client.h"
 #include "common.h"
-#include "ui.h"
 #include <iostream>
 
 bool validateUsername(char *name) {
+  Ui ui(FileType::None);
+
   std::string username(name);
 
   int num_of_chars = username.length();
   if (num_of_chars > 20 || num_of_chars < 4) {
-    std::cout << "invalid name size (min 4; max 20)\n";
+    ui.print(UiType::Error, "Invalid name size (min 4; max 20).");
     return false;
   }
   if (username[0] != '@') {
-    std::cout << "User name should start with '@'\n";
+    ui.print(UiType::Error, "User name should start with '@'.");
     return false;
   }
 
@@ -20,8 +21,9 @@ bool validateUsername(char *name) {
 }
 
 int main(int argc, char *argv[]) {
+  Ui intro(FileType::Intro);
   if (argc < 4) {
-    std::cout << "missing username, server or gate\n";
+    intro.print(UiType::Error, "Missing username, server or gate.");
     return -1;
   }
 
@@ -33,7 +35,6 @@ int main(int argc, char *argv[]) {
   char *server = argv[2];
   std::string gate = argv[3];
 
-  Ui intro(FileType::Intro);
   Client client(name);
 
   intro.asciiArt();
