@@ -38,6 +38,7 @@
 # Build dirs
 build/
 debug/
+*_env/
 
 # Mac trash files
 *.DS_Store*
