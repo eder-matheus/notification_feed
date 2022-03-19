@@ -12,6 +12,12 @@
 #include <time.h>
 #include <unistd.h>
 
+void Server::sigintHandler(int sig_num) {
+  signal(SIGINT, sigintHandler);
+  std::cout << "Server closed.\n";
+  exit(0);
+}
+
 Server::Server() : new_notification_id_(0), ui(FileType::None) {}
 
 bool Server::isLogged(const std::string &username) {
@@ -168,6 +174,7 @@ void *Server::receiveCommand(void *args) {
   int n;
   char packet[BUFFER_SIZE], confirmation_packet[BUFFER_SIZE];
 
+  signal(SIGINT, sigintHandler);
   while (1) {
     // receive from client
     memset(packet, 0, BUFFER_SIZE);

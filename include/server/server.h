@@ -46,6 +46,7 @@ private:
 
   // aux functions
   bool isLogged(const std::string &username);
+  static void sigintHandler(int sig_num);
 
 public:
   Server();
