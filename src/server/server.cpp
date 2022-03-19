@@ -30,7 +30,7 @@ bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
     users_[username].incrementSessions();
   }
 
-  logged_users_[username].push_back(user_address);
+  logged_users_[username].push_back(user_address);  
 
   return true;
 }
@@ -38,16 +38,18 @@ bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
 bool Server::logoffUser(std::string username) {
   if (users_.find(username) != users_.end()) { // user already exists on the db
     User &user = users_[username];
+    // std::cout << username << " is goint to logff\n";
     user.decrementSessions();
 
     // if user has no sessions on, delete the list of addresses of it
     if (user.getSessions() == 0) {
+      // std::cout << "removing user from logged_users\n";
       logged_users_.erase(username);
     }
 
     return true;
   }
-
+  
   return false;
 }
 
@@ -114,6 +116,20 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   return true;
 }
 
+void Server::sendStoredNotifications(std::string username) {
+
+  auto itr = pending_notifications_.find(username);
+  if (itr != pending_notifications_.end()) {
+    std::vector<long int> pending  = itr->second;
+
+    for(int i = 0; i < pending.size(); i++) {
+      // std::cout << "notification: " << i << "\n";
+      notificationToUser((const std::string &)username, pending[i]);
+    }
+    pending_notifications_.erase(username);
+  }
+}
+
 void *Server::receiveCommand(void *args) {
   std::cout << "Read to receive commands\n";
   Server *_this = (Server *)args;
@@ -157,6 +173,7 @@ void *Server::receiveCommand(void *args) {
       // change db
     } else if (received_command == "login") {
       std::string username = decoded_packet[1];
+      pthread_mutex_lock(&_this->lock_);
       bool login_ok = _this->loginUser(username, client_address);
       if (login_ok) {
         std::cout << username << " successfully logged.\n";
@@ -164,6 +181,7 @@ void *Server::receiveCommand(void *args) {
         if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) < 0) {
           printf("[ERROR] Cannot send login confirmation to client.\n");
         }
+        _this->sendStoredNotifications(username);
       } else {
         std::cout << "[ERROR]" << username << " has reached max sessions\n";
         // send confirmation to client
@@ -171,6 +189,7 @@ void *Server::receiveCommand(void *args) {
           printf("[ERROR] Cannot send login confirmation to client.\n");
         }
       }
+      pthread_mutex_unlock(&_this->lock_);
     } else if (received_command == "logoff") {
       std::string username = decoded_packet[1];
       _this->logoffUser(username);
@@ -195,8 +214,10 @@ void *Server::sendNotifications(void *args) {
     std::cout << "semaforo full\n";
     pthread_mutex_lock(&_this->lock_);
     for (auto &notification : _this->pending_notifications_) {
+      // std::cout << "there is a pending notification\n";
       const auto &user = notification.first;
       if (_this->isLogged(user)) {
+        //std::cout << user << " is on\n";      
         logged_users.push_back(user);
         auto &notification_ids = notification.second;
         for (int i = 0; i < notification_ids.size(); i++) {
@@ -210,8 +231,10 @@ void *Server::sendNotifications(void *args) {
       }
     }
     for (std::string user : logged_users) {
-      _this->pending_notifications_.erase(user);
+       _this->pending_notifications_.erase(user);
+      // std::cout << "erased pending for: " << user << "\n";
     }
+    logged_users.clear();
     pthread_mutex_unlock(&_this->lock_);
   }
 }
