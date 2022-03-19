@@ -4,7 +4,7 @@
 #                                                       #
 #     |     Trabalho de SISTEMAS OPERACIONAIS 2     |   #
 #     |              Desenvolvido por:              |   #
-#	  |                    Éder                     |   #
+#     |                    Éder                     |   #
 #     |                     &                       |   #    
 #     |                  Guilherme                  |   #         
  #                                                     #
