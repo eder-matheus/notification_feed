@@ -4,6 +4,7 @@ add_executable(server
 	../app/app_server.cpp
 	../util/common.cpp
 	../util/notification.cpp
+	../util/ui.cpp
 	server.cpp
 	user.cpp
 )

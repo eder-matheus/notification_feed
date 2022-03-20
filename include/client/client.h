@@ -1,9 +1,10 @@
+#include "ui.h"
 #include <netdb.h>
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <sys/time.h>
+#include <sys/types.h>
 
 enum class CmdType;
 
@@ -19,6 +20,8 @@ private:
   struct sockaddr_in server_address_, from_;
   struct hostent *server_;
 
+  Ui ui;
+
 public:
   static void sigintHandler(int sig_num);
   Client() = default;
@@ -28,5 +31,5 @@ public:
   static void *receiveFromServer(void *);
   void createConnection(char *, std::string);
   std::string checkServerAnswer();
-  std::string tryCommand(char *, int);
+  std::string tryCommand(char *, int, bool);
 };

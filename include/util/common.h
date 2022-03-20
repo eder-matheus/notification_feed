@@ -10,7 +10,15 @@
 #define CMD_FAIL "0\n"
 #define CMD_404 "9\n"
 
-enum class CmdType { Send, Follow, Login, Receive, Logoff, Confirmation, Error };
+enum class CmdType {
+  Send,
+  Follow,
+  Login,
+  Receive,
+  Logoff,
+  Confirmation,
+  Error
+};
 
 struct Follow {
   std::string client;
@@ -25,5 +33,5 @@ struct Follow {
 
 std::vector<std::string> decodificatePackage(char *package);
 
-void codificatePackage(char *, CmdType, std::string, unsigned long int timestamp = 0,
-                       std::string user = "0");
+void codificatePackage(char *, CmdType, std::string,
+                       unsigned long int timestamp = 0, std::string user = "0");

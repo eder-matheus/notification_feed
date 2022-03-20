@@ -1,7 +1,6 @@
 #include "client.h"
 #include "common.h"
 #include "notification.h"
-#include "ui.h"
 #include <arpa/inet.h>
 #include <chrono>
 #include <cstring>
@@ -21,15 +20,14 @@ using namespace std::chrono;
 // global var to check ctrl+c
 bool _interruption_ = false;
 
-void Client::sigintHandler(int sig_num)
-{
+void Client::sigintHandler(int sig_num) {
   signal(SIGINT, sigintHandler);
   _interruption_ = true;
   std::cout << "Press ENTER to complete logoff\n";
 }
 
 Client::Client(std::string username)
-    : username_(username), ready_to_receive_(false) {}
+    : username_(username), ready_to_receive_(false), ui(FileType::None) {}
 
 CmdType Client::validateCommand(std::string input, std::string &content) {
 
@@ -39,16 +37,12 @@ CmdType Client::validateCommand(std::string input, std::string &content) {
 
   CmdType type;
   if (command == "FOLLOW") {
-    std::cout << "follow command\n";
     type = CmdType::Follow;
   } else if (command == "SEND") {
-    std::cout << "send command\n";
     type = CmdType::Send;
   } else if (command == "LOGOFF") {
-    std::cout << "logoff\n";
     type = CmdType::Logoff;
   } else {
-    std::cout << "invalid command\n";
     type = CmdType::Error;
   }
 
@@ -61,24 +55,23 @@ void *Client::commandToServer(void *args) {
   Client *_this = (Client *)args;
   char packet[BUFFER_SIZE];
   CmdType type;
-  std::string server_answer = CMD_404;  
+  std::string server_answer = CMD_404;
   int n = 0, time_limit = REC_WAIT_LIMIT;
 
   memset(packet, 0, BUFFER_SIZE);
   codificatePackage(packet, CmdType::Login, _this->username_);
-  server_answer = _this->tryCommand(packet, time_limit);
+  server_answer = _this->tryCommand(packet, time_limit, true);
 
   if (server_answer == CMD_FAIL) {
-    std::cout << "already logged\n";
-    exit(0);
+    _this->ui.print(UiType::Error,
+                    "You reached the max simultaneous sessions.");
+    return 0;
   } else if (server_answer == CMD_404) {
-    std::cout << "server off, try again later\n";
-    exit(0);
+    _this->ui.print(UiType::Error, "Server off, try again later.");
+    return 0;
   }
 
   _this->ready_to_receive_ = true;
-  Ui ui(FileType::None);
-  ui.textBlock(UiType::Message, "teste");
 
   signal(SIGINT, sigintHandler);
   while (true) {
@@ -92,24 +85,25 @@ void *Client::commandToServer(void *args) {
     type = _this->validateCommand(input, content);
 
     if (type == CmdType::Error) {
-      std::cout << "TO KILL LOOP\n";
-      return 0;
+      _this->ui.print(UiType::Error, "Invalid command.");
     } else {
       // send packet to server
       unsigned long int timestamp =
           duration_cast<milliseconds>(system_clock::now().time_since_epoch())
               .count();
 
-      memset(packet, 0, BUFFER_SIZE);
-      codificatePackage(packet, type, content, timestamp, _this->username_);
-      server_answer = _this->tryCommand(packet, time_limit);    
-      
-      // need to add a check for the return of the server
-      if (type == CmdType::Logoff) {
-        exit(0);
+      if (type == CmdType::Send && content.size() > 128) {
+        _this->ui.print(UiType::Error, "Message has more than 128 characters.");
+      } else {
+        memset(packet, 0, BUFFER_SIZE);
+        codificatePackage(packet, type, content, timestamp, _this->username_);
+        server_answer = _this->tryCommand(packet, time_limit, false);
+
+        if (type == CmdType::Logoff) {
+          return 0;
+        }
       }
     }
-    std::cout << "end of loop\n";
   }
 }
 
@@ -117,7 +111,7 @@ void *Client::receiveFromServer(void *args) {
   Client *_this = (Client *)args;
   Ui ui(FileType::None);
 
-  std::cout << "receiving\n";
+  _this->ui.print(UiType::Info, "Waiting for notifications.");
   char notification_packet[BUFFER_SIZE];
   unsigned int length = sizeof(struct sockaddr_in);
   std::vector<std::string> received_packet_data;
@@ -125,17 +119,14 @@ void *Client::receiveFromServer(void *args) {
     if (_this->ready_to_receive_) {
       memset(notification_packet, 0, BUFFER_SIZE);
       int n = recvfrom(_this->socket_, notification_packet, BUFFER_SIZE, 0,
-                       (struct sockaddr *) &_this->from_, &length);
-      if (n < 0) {
-        std::cout << "\n failed to receive \n";
-      } else {
-        std::cout << "received from server: " << notification_packet << "\n";
-
+                       (struct sockaddr *)&_this->from_, &length);
+      if (n >= 0) {
         received_packet_data = decodificatePackage(notification_packet);
         std::string message = received_packet_data[1];
-        unsigned long int timestamp = std::stoul(received_packet_data[2], nullptr, 10);
+        unsigned long int timestamp =
+            std::stoul(received_packet_data[2], nullptr, 10);
         std::string username = received_packet_data[3];
-        ui.textBlock(UiType::Message, message, username, timestamp);
+        ui.print(UiType::Message, message, username, timestamp);
       }
     }
   }
@@ -149,13 +140,14 @@ void Client::createConnection(char *server, std::string gate) {
 
   server_ = gethostbyname(server);
   if (server == NULL) {
-    std::cout << "\nhost does not exist\n";
+    ui.print(UiType::Error, "Host does not exist.");
   } else {
     if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-      std::cout << "\nfailed to create socket\n";
+      ui.print(UiType::Error, "Failed to create socket.");
     socket_time_.tv_sec = REC_WAIT;
     socket_time_.tv_usec = 0;
-    setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time_, sizeof(struct timeval));
+    setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time_,
+               sizeof(struct timeval));
     server_address_.sin_family = AF_INET;
     server_address_.sin_port = htons(std::stoi(gate));
     server_address_.sin_addr = *((struct in_addr *)server_->h_addr);
@@ -168,7 +160,7 @@ void Client::createConnection(char *server, std::string gate) {
 }
 
 std::string Client::checkServerAnswer() {
- 
+
   char confirmation_packet[BUFFER_SIZE];
   unsigned int length = sizeof(struct sockaddr_in);
   std::vector<std::string> received_packet_data;
@@ -178,34 +170,36 @@ std::string Client::checkServerAnswer() {
   strcpy(confirmation_packet, CMD_404);
 
   n = recvfrom(socket_, confirmation_packet, BUFFER_SIZE, 0,
-                 (struct sockaddr *) &from_, &length);
+               (struct sockaddr *)&from_, &length);
 
   if (n < 0) {
-    std::cout << "\nfailed to receive confirmation from server! \n";
+    ui.print(UiType::Error, "Failed to receive confirmation from server.");
   }
-  
+
   received_packet_data = decodificatePackage(confirmation_packet);
 
   return received_packet_data[0];
 }
 
-std::string Client::tryCommand(char *packet, int time_limit) {
+std::string Client::tryCommand(char *packet, int time_limit,
+                               bool check_answer) {
 
-  int secs_waiting_answer = 0, n;
+  int secs_waiting_answer = 0;
+  int n = -1;
   std::string server_answer = CMD_404;
 
-  while(secs_waiting_answer < time_limit && server_answer == CMD_404) {
-  
-    n = sendto(socket_, packet, strlen(packet), 0, (const struct sockaddr *) &server_address_, 
-     	       sizeof(struct sockaddr_in));
+  while (secs_waiting_answer < time_limit && server_answer == CMD_404 &&
+         n < 0) {
+
+    n = sendto(socket_, packet, strlen(packet), 0,
+               (const struct sockaddr *)&server_address_,
+               sizeof(struct sockaddr_in));
     if (n < 0) {
-      std::cout << "failed to send cmd\n";
-    }
-    else {
+      ui.print(UiType::Error, "Failed to send command.");
+    } else if (check_answer) {
       server_answer = checkServerAnswer();
-      server_answer.append("\n"); //THIS NEEDS TO BE DEALT WITH
+      server_answer.append("\n"); // THIS NEEDS TO BE DEALT WITH
       secs_waiting_answer++;
-      std::cout << "waited seconds: " << secs_waiting_answer << "\n";
     }
   }
 

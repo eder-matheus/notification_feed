@@ -9,11 +9,11 @@ Ui::Ui(FileType use) {
 
   switch (ui_use) {
   case FileType::Intro:
-    ascii_image.open("../../../src/client/ui_files/intro_ascii.txt",
+    ascii_image.open("./ui_files/intro_ascii.txt",
                      std::ios::in);
     break;
   case FileType::Exit:
-    ascii_image.open("../../../src/client/ui_files/exit_ascii.txt",
+    ascii_image.open("./ui_files/exit_ascii.txt",
                      std::ios::in);
     break;
   case FileType::None:
@@ -27,36 +27,32 @@ Ui::Ui(FileType use) {
 }
 // destructor should close file
 
-void Ui::textBlock(UiType label, std::string message, std::string sender,
-                   unsigned long int timestamp) {
+void Ui::print(UiType label, std::string message, std::string sender,
+               unsigned long int timestamp) {
 
-  std::cout << "\n"
-            << "### ";
+  std::cout << "\n";
 
   switch (label) {
   case UiType::Message:
-    std::cout << "A NOTIFICATION FROM:\n";
-    std::cout << "** " << sender << "\n";
-    std::cout << " - " << message << "\n";
-    std::cout << " - (" << timestamp << ")\n";
+    std::cout << "[MESSAGE]" << sender << " says: " << message << "("
+              << timestamp << ")\n";
     break;
   case UiType::Warn:
-    std::cout << "WARNING\n";
-    std::cout << message << "\n";
+    std::cout << "[WARN] " << message << "\n";
     break;
   case UiType::Error:
-    std::cout << "ERROR\n";
-    std::cout << message << "\n";
+    std::cout << "[ERROR] " << message << "\n";
     break;
   case UiType::Success:
-    std::cout << "SUCCESS\n";
-    std::cout << message << "\n";
+    std::cout << "[SUCCESS] " << message << "\n";
+    break;
+  case UiType::Info:
+    std::cout << "[INFO] " << message << "\n";
     break;
   default:
     break;
   }
-  std::cout << "###"
-            << "\n\n";
+  std::cout << "\n";
 }
 
 void Ui::asciiArt() {

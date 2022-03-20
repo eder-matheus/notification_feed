@@ -1,9 +1,12 @@
 #include "common.h"
 #include "notification.h"
+#include "ui.h"
 #include "user.h"
 #include <map>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <semaphore.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -28,12 +31,22 @@ private:
   std::unordered_map<std::string, std::vector<struct sockaddr_in>>
       logged_users_;
 
+  Ui ui;
+
   // attributes for server data
   int socket_;
   struct sockaddr_in server_address_;
 
+  // attributes for mutex and semaphores
+  pthread_mutex_t lock_;
+  sem_t sem_full_;
+
+  // constants
+  const std::string db_file_name_ = "database.txt";
+
   // aux functions
   bool isLogged(const std::string &username);
+  static void sigintHandler(int sig_num);
 
 public:
   Server();
@@ -45,5 +58,9 @@ public:
   static void *sendNotifications(void *);
   static void *receiveCommand(void *);
   void createConnection();
-  int sendCmdStatus(std::string status, char* confirmation_packet, struct sockaddr_in client_address);
+  int sendCmdStatus(std::string status, char *confirmation_packet,
+                    struct sockaddr_in client_address);
+  void sendStoredNotifications(std::string username);
+  bool readDatabase();
+  void addUserRelationToDB(std::string user, std::string follower);
 };

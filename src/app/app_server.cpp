@@ -2,7 +2,8 @@
 #include <iostream>
 
 int main() {
-  std::cout << "Server started\n";
+  Ui ui(FileType::None);
+  ui.print(UiType::Success, "Server started.");
 
   Server server;
   server.createConnection();
