@@ -11,14 +11,12 @@
 std::vector<std::string> decodificatePackage(char *package) {
   std::vector<std::string> broken_package;
   std::string full_package(package);
-  std::size_t eol_pos;
-  std::string data = "";
   bool decoded = false;
 
   while (!decoded) {
-    eol_pos = full_package.find('\n');
+    std::size_t eol_pos = full_package.find('\n');
     if (eol_pos != std::string::npos) {
-      data = full_package.substr(0, eol_pos);
+      std::string data = full_package.substr(0, eol_pos);
       broken_package.push_back(data);
       full_package.erase(0, full_package.find('\n') + sizeof(char));
     } else {

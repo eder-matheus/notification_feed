@@ -56,7 +56,7 @@ void *Client::commandToServer(void *args) {
   char packet[BUFFER_SIZE];
   CmdType type;
   std::string server_answer = CMD_404;
-  int n = 0, time_limit = REC_WAIT_LIMIT;
+  int time_limit = REC_WAIT_LIMIT;
 
   memset(packet, 0, BUFFER_SIZE);
   codificatePackage(packet, CmdType::Login, _this->username_);
@@ -97,7 +97,7 @@ void *Client::commandToServer(void *args) {
       } else {
         memset(packet, 0, BUFFER_SIZE);
         codificatePackage(packet, type, content, timestamp, _this->username_);
-        server_answer = _this->tryCommand(packet, time_limit, false);
+        _this->tryCommand(packet, time_limit, false);
 
         if (type == CmdType::Logoff) {
           return 0;

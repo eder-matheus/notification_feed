@@ -102,14 +102,13 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   const Notification &notification = notifications_[notification_id];
 
   // send to client
-  int n;
   char packet[BUFFER_SIZE]; // convert notification to string
   codificatePackage(packet, CmdType::Send, notification.getMessage(),
                     notification.getTimestamp(), notification.getUsername());
   std::vector<struct sockaddr_in> client_addresses =
       logged_users_[user]; // get client addresses from map
   for (struct sockaddr_in &addr : client_addresses) {
-    n = sendto(socket_, packet, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
+    int n = sendto(socket_, packet, BUFFER_SIZE, 0, (struct sockaddr *)&addr,
                sizeof(struct sockaddr));
     if (n < 0) {
       ui_.print(UiType::Error, "Cannot send to client.");
