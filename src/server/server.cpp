@@ -169,14 +169,13 @@ void *Server::receiveCommand(void *args) {
   _this->ui_.print(UiType::Info, "Read to receive commands.");
   struct sockaddr_in client_address;
   socklen_t client_length = sizeof(struct sockaddr_in);
-  int n;
   char packet[BUFFER_SIZE], confirmation_packet[BUFFER_SIZE];
 
   signal(SIGINT, sigintHandler);
   while (1) {
     // receive from client
     memset(packet, 0, BUFFER_SIZE);
-    n = recvfrom(_this->socket_, packet, BUFFER_SIZE, 0,
+    int n = recvfrom(_this->socket_, packet, BUFFER_SIZE, 0,
                  (struct sockaddr *)&(client_address), &(client_length));
     if (n < 0)
       _this->ui_.print(UiType::Error, "Cannot receive command from client.");
