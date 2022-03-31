@@ -9,12 +9,10 @@ Ui::Ui(FileType use) {
 
   switch (ui_use) {
   case FileType::Intro:
-    ascii_image.open("./ui_files/intro_ascii.txt",
-                     std::ios::in);
+    ascii_image.open("./ui_files/intro_ascii.txt", std::ios::in);
     break;
   case FileType::Exit:
-    ascii_image.open("./ui_files/exit_ascii.txt",
-                     std::ios::in);
+    ascii_image.open("./ui_files/exit_ascii.txt", std::ios::in);
     break;
   case FileType::None:
     break;
