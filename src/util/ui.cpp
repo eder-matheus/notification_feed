@@ -4,7 +4,6 @@
 #include <string>
 
 Ui::Ui(FileType use) {
-
   ui_use_ = use;
 
   switch (ui_use_) {
@@ -27,7 +26,6 @@ Ui::Ui(FileType use) {
 
 void Ui::print(UiType label, std::string message, std::string sender,
                unsigned long int timestamp) {
-
   std::cout << "\n";
 
   switch (label) {
@@ -54,7 +52,6 @@ void Ui::print(UiType label, std::string message, std::string sender,
 }
 
 void Ui::asciiArt() {
-
   std::string line;
   while (getline(ascii_image_, line))
     std::cout << line << "\n";

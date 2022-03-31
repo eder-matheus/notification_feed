@@ -30,7 +30,6 @@ Client::Client(std::string username)
     : username_(username), ready_to_receive_(false), ui_(FileType::None) {}
 
 CmdType Client::validateCommand(std::string input, std::string &content) {
-
   std::string command = input.substr(0, input.find(' '));
   input.erase(0, input.find(' ') + sizeof(char));
   content = input;
@@ -50,7 +49,6 @@ CmdType Client::validateCommand(std::string input, std::string &content) {
 }
 
 void *Client::commandToServer(void *args) {
-
   std::string input;
   Client *_this = (Client *)args;
   char packet[BUFFER_SIZE];
@@ -75,7 +73,6 @@ void *Client::commandToServer(void *args) {
 
   signal(SIGINT, sigintHandler);
   while (true) {
-
     std::getline(std::cin, input);
 
     if (std::cin.eof() || _interruption_) {
@@ -134,7 +131,6 @@ void *Client::receiveFromServer(void *args) {
 }
 
 void Client::createConnection(char *server, std::string gate) {
-
   pthread_t senderTid;
   pthread_t receiverTid;
 
@@ -160,7 +156,6 @@ void Client::createConnection(char *server, std::string gate) {
 }
 
 std::string Client::checkServerAnswer() {
-
   char confirmation_packet[BUFFER_SIZE];
   unsigned int length = sizeof(struct sockaddr_in);
   std::vector<std::string> received_packet_data;
@@ -183,7 +178,6 @@ std::string Client::checkServerAnswer() {
 
 std::string Client::tryCommand(char *packet, int time_limit,
                                bool check_answer) {
-
   int secs_waiting_answer = 0;
   int n = -1;
   std::string server_answer = CMD_404;

@@ -47,12 +47,10 @@ bool Server::logoffUser(std::string username) {
   if (users_.find(username) !=
       users_.end()) { // user already exists on the data structures
     User &user = users_[username];
-    // std::cout << username << " is goint to logff\n";
     user.decrementSessions();
 
     // if user has no sessions on, delete the list of addresses of it
     if (user.getSessions() == 0) {
-      // std::cout << "removing user from logged_users\n";
       logged_users_.erase(username);
     }
 
@@ -128,13 +126,11 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
 }
 
 void Server::sendStoredNotifications(std::string username) {
-
   auto itr = pending_notifications_.find(username);
   if (itr != pending_notifications_.end()) {
     std::vector<long int> pending = itr->second;
 
     for (int i = 0; i < pending.size(); i++) {
-      // std::cout << "notification: " << i << "\n";
       notificationToUser((const std::string &)username, pending[i]);
     }
     pending_notifications_.erase(username);
@@ -252,10 +248,8 @@ void *Server::sendNotifications(void *args) {
     sem_wait(&_this->sem_full_);
     pthread_mutex_lock(&_this->lock_);
     for (auto &notification : _this->pending_notifications_) {
-      // std::cout << "there is a pending notification\n";
       const auto &user = notification.first;
       if (_this->isLogged(user)) {
-        // std::cout << user << " is on\n";
         logged_users.push_back(user);
         auto &notification_ids = notification.second;
         for (int i = 0; i < notification_ids.size(); i++) {
@@ -269,7 +263,6 @@ void *Server::sendNotifications(void *args) {
     }
     for (std::string user : logged_users) {
       _this->pending_notifications_.erase(user);
-      // std::cout << "erased pending for: " << user << "\n";
     }
     logged_users.clear();
     pthread_mutex_unlock(&_this->lock_);
