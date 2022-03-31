@@ -11,9 +11,9 @@ private:
 
 public:
   Notification() = default;
-  Notification(std::string message, std::string username);
-  Notification(std::string message, unsigned long int timestamp,
-               std::string username);
+  Notification(const std::string &message, const std::string &username);
+  Notification(const std::string &message, unsigned long int timestamp,
+               const std::string &username);
   int getId() const;
   void setId(long int id);
   unsigned long int getTimestamp() const;

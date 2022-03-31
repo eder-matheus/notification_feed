@@ -50,17 +50,17 @@ private:
 
 public:
   Server();
-  bool loginUser(std::string username, struct sockaddr_in user_address);
-  bool logoffUser(std::string username);
-  bool followUser(Follow follow);
+  bool loginUser(const std::string &username, struct sockaddr_in user_address);
+  bool logoffUser(const std::string &username);
+  bool followUser(const Follow &follow);
   void addNotification(const Notification &notification);
   bool notificationToUser(const std::string &user, int notification_id);
   static void *sendNotifications(void *args);
   static void *receiveCommand(void *args);
   void createConnection();
-  int sendCmdStatus(std::string status, char *confirmation_packet,
+  int sendCmdStatus(const std::string &status, char *confirmation_packet,
                     struct sockaddr_in client_address);
-  void sendStoredNotifications(std::string username);
+  void sendStoredNotifications(const std::string &username);
   bool readDatabase();
-  void addUserRelationToDB(std::string user, std::string follower);
+  void addUserRelationToDB(const std::string &user, const std::string &follower);
 };

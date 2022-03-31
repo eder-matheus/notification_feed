@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-Notification::Notification(std::string message, std::string username)
+Notification::Notification(const std::string &message, const std::string &username)
     : id_(-1), length_(message.size()), pending_receivers_(-1),
       message_(message), username_(username) {
   using namespace std::chrono;
@@ -12,8 +12,8 @@ Notification::Notification(std::string message, std::string username)
           .count();
 };
 
-Notification::Notification(std::string message, unsigned long int timestamp,
-                           std::string username)
+Notification::Notification(const std::string &message, unsigned long int timestamp,
+                           const std::string &username)
     : id_(-1), timestamp_(timestamp), length_(message.size()),
       pending_receivers_(-1), message_(message), username_(username){};
 

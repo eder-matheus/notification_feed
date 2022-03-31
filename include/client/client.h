@@ -25,11 +25,11 @@ private:
 public:
   static void sigintHandler(int sig_num);
   Client() = default;
-  Client(std::string username);
+  Client(const std::string &username);
   static void *commandToServer(void *args);
-  CmdType validateCommand(std::string input, std::string &content);
+  CmdType validateCommand(std::string &input, std::string &content);
   static void *receiveFromServer(void *args);
-  void createConnection(char *server, std::string gate);
+  void createConnection(char *server, const std::string &gate);
   std::string checkServerAnswer();
   std::string tryCommand(char *packet, int time_limit, bool check_answer);
 };

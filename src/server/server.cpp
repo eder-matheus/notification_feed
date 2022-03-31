@@ -25,7 +25,7 @@ bool Server::isLogged(const std::string &username) {
   return logged_users_.find(username) != logged_users_.end();
 }
 
-bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
+bool Server::loginUser(const std::string &username, struct sockaddr_in user_address) {
   if (users_.find(username) !=
       users_.end()) { // user already exists on the data structures
     User &user = users_[username];
@@ -43,7 +43,7 @@ bool Server::loginUser(std::string username, struct sockaddr_in user_address) {
   return true;
 }
 
-bool Server::logoffUser(std::string username) {
+bool Server::logoffUser(const std::string &username) {
   if (users_.find(username) !=
       users_.end()) { // user already exists on the data structures
     User &user = users_[username];
@@ -60,9 +60,9 @@ bool Server::logoffUser(std::string username) {
   return false;
 }
 
-bool Server::followUser(Follow follow) {
-  std::string curr_user = follow.client;
-  std::string user_followed = follow.user_followed;
+bool Server::followUser(const Follow &follow) {
+  const std::string &curr_user = follow.client;
+  const std::string &user_followed = follow.user_followed;
 
   if (users_.find(user_followed) != users_.end() &&
       curr_user != user_followed) { // user exists on the data structures and it
@@ -125,7 +125,7 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   return true;
 }
 
-void Server::sendStoredNotifications(std::string username) {
+void Server::sendStoredNotifications(const std::string &username) {
   auto itr = pending_notifications_.find(username);
   if (itr != pending_notifications_.end()) {
     std::vector<long int> pending = itr->second;
@@ -157,7 +157,7 @@ bool Server::readDatabase() {
   return true;
 }
 
-void Server::addUserRelationToDB(std::string user, std::string follower) {
+void Server::addUserRelationToDB(const std::string &user, const std::string &follower) {
   std::ofstream db;
   db.open(db_file_name_, std::ios::app);
   db << user << " " << follower << "\n";
@@ -302,7 +302,7 @@ void Server::createConnection() {
   pthread_mutex_destroy(&lock_);
 }
 
-int Server::sendCmdStatus(std::string status, char *confirmation_packet,
+int Server::sendCmdStatus(const std::string &status, char *confirmation_packet,
                           struct sockaddr_in client_address) {
   memset(confirmation_packet, 0, BUFFER_SIZE);
   codificatePackage(confirmation_packet, CmdType::Confirmation, status);

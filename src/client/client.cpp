@@ -26,10 +26,10 @@ void Client::sigintHandler(int sig_num) {
   std::cout << "Press ENTER to complete logoff\n";
 }
 
-Client::Client(std::string username)
+Client::Client(const std::string &username)
     : username_(username), ready_to_receive_(false), ui_(FileType::None) {}
 
-CmdType Client::validateCommand(std::string input, std::string &content) {
+CmdType Client::validateCommand(std::string &input, std::string &content) {
   std::string command = input.substr(0, input.find(' '));
   input.erase(0, input.find(' ') + sizeof(char));
   content = input;
@@ -130,7 +130,7 @@ void *Client::receiveFromServer(void *args) {
   return 0;
 }
 
-void Client::createConnection(char *server, std::string gate) {
+void Client::createConnection(char *server, const std::string &gate) {
   pthread_t senderTid;
   pthread_t receiverTid;
 

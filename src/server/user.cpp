@@ -1,3 +1,3 @@
 #include "user.h"
 
-User::User(std::string name) : username_(name), sessions_(0) {}
+User::User(const std::string &name) : username_(name), sessions_(0) {}

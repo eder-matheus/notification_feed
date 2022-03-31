@@ -13,7 +13,7 @@ private:
 public:
   Ui() = default;
   Ui(FileType);
-  void print(UiType label, std::string message, std::string sender = "0",
+  void print(UiType label, const std::string &message, const std::string &sender = "0",
              unsigned long int timestamp = 0);
   void asciiArt();
   void loadingInfo();

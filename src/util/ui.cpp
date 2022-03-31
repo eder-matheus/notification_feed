@@ -24,7 +24,7 @@ Ui::Ui(FileType use) {
 }
 // destructor should close file
 
-void Ui::print(UiType label, std::string message, std::string sender,
+void Ui::print(UiType label, const std::string &message, const std::string &sender,
                unsigned long int timestamp) {
   std::cout << "\n";
 
