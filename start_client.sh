@@ -13,7 +13,7 @@ if [ -d "client_env" ]; then
 
 	if [ ! $# -eq 0 ]; then
 		if [ -f "client" ]; then
-			./client $1 $2 $3
+			./client "$1" "$2" "$3"
 		fi
 		cd -
 	fi
