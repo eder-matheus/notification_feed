@@ -21,6 +21,7 @@ The notification_feed system has two main entities: the server, and the client a
 *NOTE*: The following commands will only work if you have builded the project (i.e., executed the `build.sh` script).
 *   To start the server, run `source start_server.sh`. The script will create the directory `/path/to/notification_feed/server_env`, where a symlink to the server binary is create and the database file created by the server is saved.
     *   You can end the server application with the `Ctrl+C` command. This will have you back to the root directory of the repository.
+
 *   To start a client application, run `source start_client.sh @username server gate`. The script will create the directory `/path/to/notification_feed/client_env`, where a symlink to the client binary is created. Multiple clients can share the same binary to start its applications.
     *   Alternatively, you can run `source start_client.sh` without the three parameters. This will lead you to the `/path/to/notification_feed/client_env` directory, where you can manually call the `client` binary with the correct parameters.
     *   You can end the client application with `Ctrl+D` or `Ctrl+C` commands. Both of them will have you back to the root directory of the repository.
