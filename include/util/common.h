@@ -33,5 +33,5 @@ struct Follow {
 
 std::vector<std::string> decodificatePackage(char *package);
 
-void codificatePackage(char *, CmdType, std::string,
+void codificatePackage(char *package, CmdType type, std::string information,
                        unsigned long int timestamp = 0, std::string user = "0");

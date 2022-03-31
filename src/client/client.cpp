@@ -27,7 +27,7 @@ void Client::sigintHandler(int sig_num) {
 }
 
 Client::Client(std::string username)
-    : username_(username), ready_to_receive_(false), ui(FileType::None) {}
+    : username_(username), ready_to_receive_(false), ui_(FileType::None) {}
 
 CmdType Client::validateCommand(std::string input, std::string &content) {
 
@@ -63,11 +63,11 @@ void *Client::commandToServer(void *args) {
   server_answer = _this->tryCommand(packet, time_limit, true);
 
   if (server_answer == CMD_FAIL) {
-    _this->ui.print(UiType::Error,
+    _this->ui_.print(UiType::Error,
                     "You reached the max simultaneous sessions.");
     return 0;
   } else if (server_answer == CMD_404) {
-    _this->ui.print(UiType::Error, "Server off, try again later.");
+    _this->ui_.print(UiType::Error, "Server off, try again later.");
     return 0;
   }
 
@@ -85,7 +85,7 @@ void *Client::commandToServer(void *args) {
     type = _this->validateCommand(input, content);
 
     if (type == CmdType::Error) {
-      _this->ui.print(UiType::Error, "Invalid command.");
+      _this->ui_.print(UiType::Error, "Invalid command.");
     } else {
       // send packet to server
       unsigned long int timestamp =
@@ -93,7 +93,7 @@ void *Client::commandToServer(void *args) {
               .count();
 
       if (type == CmdType::Send && content.size() > 128) {
-        _this->ui.print(UiType::Error, "Message has more than 128 characters.");
+        _this->ui_.print(UiType::Error, "Message has more than 128 characters.");
       } else {
         memset(packet, 0, BUFFER_SIZE);
         codificatePackage(packet, type, content, timestamp, _this->username_);
@@ -109,9 +109,9 @@ void *Client::commandToServer(void *args) {
 
 void *Client::receiveFromServer(void *args) {
   Client *_this = (Client *)args;
-  Ui ui(FileType::None);
+  Ui ui_(FileType::None);
 
-  _this->ui.print(UiType::Info, "Waiting for notifications.");
+  _this->ui_.print(UiType::Info, "Waiting for notifications.");
   char notification_packet[BUFFER_SIZE];
   unsigned int length = sizeof(struct sockaddr_in);
   std::vector<std::string> received_packet_data;
@@ -126,7 +126,7 @@ void *Client::receiveFromServer(void *args) {
         unsigned long int timestamp =
             std::stoul(received_packet_data[2], nullptr, 10);
         std::string username = received_packet_data[3];
-        ui.print(UiType::Message, message, username, timestamp);
+        ui_.print(UiType::Message, message, username, timestamp);
       }
     }
   }
@@ -140,10 +140,10 @@ void Client::createConnection(char *server, std::string gate) {
 
   server_ = gethostbyname(server);
   if (server == NULL) {
-    ui.print(UiType::Error, "Host does not exist.");
+    ui_.print(UiType::Error, "Host does not exist.");
   } else {
     if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-      ui.print(UiType::Error, "Failed to create socket.");
+      ui_.print(UiType::Error, "Failed to create socket.");
     socket_time_.tv_sec = REC_WAIT;
     socket_time_.tv_usec = 0;
     setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time_,
@@ -173,7 +173,7 @@ std::string Client::checkServerAnswer() {
                (struct sockaddr *)&from_, &length);
 
   if (n < 0) {
-    ui.print(UiType::Error, "Failed to receive confirmation from server.");
+    ui_.print(UiType::Error, "Failed to receive confirmation from server.");
   }
 
   received_packet_data = decodificatePackage(confirmation_packet);
@@ -195,7 +195,7 @@ std::string Client::tryCommand(char *packet, int time_limit,
                (const struct sockaddr *)&server_address_,
                sizeof(struct sockaddr_in));
     if (n < 0) {
-      ui.print(UiType::Error, "Failed to send command.");
+      ui_.print(UiType::Error, "Failed to send command.");
     } else if (check_answer) {
       server_answer = checkServerAnswer();
       server_answer.append("\n"); // THIS NEEDS TO BE DEALT WITH

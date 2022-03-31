@@ -31,7 +31,7 @@ private:
   std::unordered_map<std::string, std::vector<struct sockaddr_in>>
       logged_users_;
 
-  Ui ui;
+  Ui ui_;
 
   // attributes for server data
   int socket_;
@@ -55,8 +55,8 @@ public:
   bool followUser(Follow follow);
   void addNotification(const Notification &notification);
   bool notificationToUser(const std::string &user, int notification_id);
-  static void *sendNotifications(void *);
-  static void *receiveCommand(void *);
+  static void *sendNotifications(void *args);
+  static void *receiveCommand(void *args);
   void createConnection();
   int sendCmdStatus(std::string status, char *confirmation_packet,
                     struct sockaddr_in client_address);

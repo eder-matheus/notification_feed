@@ -5,14 +5,14 @@
 
 Ui::Ui(FileType use) {
 
-  ui_use = use;
+  ui_use_ = use;
 
-  switch (ui_use) {
+  switch (ui_use_) {
   case FileType::Intro:
-    ascii_image.open("./ui_files/intro_ascii.txt", std::ios::in);
+    ascii_image_.open("./ui_files/intro_ascii.txt", std::ios::in);
     break;
   case FileType::Exit:
-    ascii_image.open("./ui_files/exit_ascii.txt", std::ios::in);
+    ascii_image_.open("./ui_files/exit_ascii.txt", std::ios::in);
     break;
   case FileType::None:
     break;
@@ -20,7 +20,7 @@ Ui::Ui(FileType use) {
     break;
   }
 
-  if (ui_use != FileType::None && !ascii_image.is_open())
+  if (ui_use_ != FileType::None && !ascii_image_.is_open())
     std::cout << "FAILED TO OPEN UI FILE\n";
 }
 // destructor should close file
@@ -56,7 +56,7 @@ void Ui::print(UiType label, std::string message, std::string sender,
 void Ui::asciiArt() {
 
   std::string line;
-  while (getline(ascii_image, line))
+  while (getline(ascii_image_, line))
     std::cout << line << "\n";
 }
 

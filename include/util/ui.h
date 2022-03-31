@@ -7,13 +7,13 @@ enum class FileType { None, Intro, Exit };
 
 class Ui {
 private:
-  std::fstream ascii_image;
-  FileType ui_use;
+  std::fstream ascii_image_;
+  FileType ui_use_;
 
 public:
   Ui() = default;
   Ui(FileType);
-  void print(UiType, std::string, std::string = "0",
+  void print(UiType label, std::string message, std::string sender = "0",
              unsigned long int timestamp = 0);
   void asciiArt();
   void loadingInfo();

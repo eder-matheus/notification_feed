@@ -20,16 +20,16 @@ private:
   struct sockaddr_in server_address_, from_;
   struct hostent *server_;
 
-  Ui ui;
+  Ui ui_;
 
 public:
   static void sigintHandler(int sig_num);
   Client() = default;
   Client(std::string username);
-  static void *commandToServer(void *);
+  static void *commandToServer(void *args);
   CmdType validateCommand(std::string input, std::string &content);
-  static void *receiveFromServer(void *);
-  void createConnection(char *, std::string);
+  static void *receiveFromServer(void *args);
+  void createConnection(char *server, std::string gate);
   std::string checkServerAnswer();
-  std::string tryCommand(char *, int, bool);
+  std::string tryCommand(char *packet, int time_limit, bool check_answer);
 };
