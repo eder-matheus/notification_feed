@@ -9,6 +9,13 @@ if [ -d "server_env" ]; then
 	if [ ! -f "server" ]; then
 		ln -s ../build/src/server/server .
 	fi
-	./server
+  if [ ! -f "servers_config.cfg" ]; then
+    ln -s ../config/servers_config.cfg
+  fi
+  if [ ! $# -eq 0 ]; then
+    for (( i = 1; i <= $1; i++ )); do
+	    ./server $i &;
+    done
+  fi
 	cd -
 fi
