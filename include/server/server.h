@@ -30,10 +30,14 @@ private:
   // mapping the users with the addresses that are used by them
   std::unordered_map<std::string, std::vector<struct sockaddr_in>>
       logged_users_;
+  // map that stores the server's replicas
+  // map the server ID with its port
+  std::map<int, int> servers_ports_;
 
   Ui ui_;
 
   // attributes for server data
+  int id_;
   int socket_;
   struct sockaddr_in server_address_;
 
@@ -43,6 +47,7 @@ private:
 
   // constants
   const std::string db_file_name_ = "database.txt";
+  const std::string cfg_file_name_ = "servers_config.cfg";
 
   // aux functions
   bool isLogged(const std::string &username);
@@ -57,10 +62,11 @@ public:
   bool notificationToUser(const std::string &user, int notification_id);
   static void *sendNotifications(void *args);
   static void *receiveCommand(void *args);
-  void createConnection();
+  void createConnection(int id);
   int sendCmdStatus(const std::string &status, char *confirmation_packet,
                     struct sockaddr_in client_address);
   void sendStoredNotifications(const std::string &username);
   bool readDatabase();
+  bool readServersConfig();
   void addUserRelationToDB(const std::string &user, const std::string &follower);
 };

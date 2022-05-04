@@ -157,6 +157,27 @@ bool Server::readDatabase() {
   return true;
 }
 
+bool Server::readServersConfig() {
+  std::string line;
+  std::ifstream cfg(cfg_file_name_);
+  if (cfg.is_open()) {
+    while (std::getline(cfg, line)) {
+      if (line[0] == '#')
+        continue;
+      int id = std::stoi(line.substr(0, line.find(' ')));
+      line.erase(0, line.find(' ') + sizeof(char));
+      int port = std::stoi(line);
+      if (servers_ports_.find(id) == servers_ports_.end()) {
+        servers_ports_[id] = port;
+      }
+    }
+  } else {
+    return false;
+  }
+
+  return true;
+}
+
 void Server::addUserRelationToDB(const std::string &user, const std::string &follower) {
   std::ofstream db;
   db.open(db_file_name_, std::ios::app);
@@ -268,7 +289,7 @@ void *Server::sendNotifications(void *args) {
   }
 }
 
-void Server::createConnection() {
+void Server::createConnection(int id) {
   if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
     ui_.print(UiType::Error, "Cannot open socket.");
     exit(1);
@@ -278,8 +299,16 @@ void Server::createConnection() {
     ui_.print(UiType::Warn, "File " + db_file_name_ + " not found.");
   }
 
+  if (!readServersConfig()) {
+    ui_.print(UiType::Warn, "File " + cfg_file_name_ + " not found.");
+  }
+
+  id_ = id;
+  ui_.print(UiType::Success, "Server " + std::to_string(id_) +
+           " started using port " + std::to_string(servers_ports_[id_]) + ".");
+
   server_address_.sin_family = AF_INET;
-  server_address_.sin_port = htons(PORT);
+  server_address_.sin_port = htons(servers_ports_[id_]);
   server_address_.sin_addr.s_addr = INADDR_ANY;
   bzero(&(server_address_.sin_zero), 8);
 
