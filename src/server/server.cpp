@@ -248,6 +248,7 @@ void *Server::receiveCommand(void *args) {
                           "Cannot send login confirmation to client.\n");
         }
         _this->sendStoredNotifications(username);
+        _this->fixClientPort(username, client_address);
       } else {
         _this->ui_.print(UiType::Error, username + " has reached max sessions.");
         // send confirmation to client
@@ -263,6 +264,14 @@ void *Server::receiveCommand(void *args) {
       _this->logoffUser(username);
       _this->replicateRequests(packet);
       _this->ui_.print(UiType::Success, username + " succesfully disconnected.");
+    } else if (received_command == "fix_port") {
+      // only non-primary serverrs handle FixPort commands
+      if (!_this->isPrimary()) {
+        std::string username = decoded_packet[1];
+        int port = std::stoi(decoded_packet[2]);
+        int sessions = _this->logged_users_[username].size();
+        _this->logged_users_[username][sessions - 1].sin_port = port;
+      }
     } else {
       _this->ui_.print(UiType::Error, "Command not identified.");
     }
@@ -365,6 +374,36 @@ void Server::replicateRequests(char *packet) {
     rm_address.sin_family = AF_INET;
     rm_address.sin_addr = *((struct in_addr *)server->h_addr);
     bzero(&(rm_address.sin_zero), 8);
+
+    for (auto &server_port : servers_ports_) {
+      int id = server_port.first;
+      int port = server_port.second;
+
+      if (id != id_) {
+        rm_address.sin_port = htons(port);
+        n = sendto(socket_, packet, strlen(packet), 0,
+                  (const struct sockaddr *)&rm_address,
+                  sizeof(struct sockaddr_in));
+        if (n < 0) {
+          ui_.print(UiType::Error, "Failed to replicate request.");
+        }
+      }
+    }
+  }
+}
+
+void Server::fixClientPort(std::string username, struct sockaddr_in user_address) {
+  if (isPrimary()) {
+    char packet[BUFFER_SIZE];
+    int n = -1;
+    struct hostent *server = gethostbyname("localhost");
+    struct sockaddr_in rm_address;
+
+    rm_address.sin_family = AF_INET;
+    rm_address.sin_addr = *((struct in_addr *)server->h_addr);
+    bzero(&(rm_address.sin_zero), 8);
+
+    codificatePackage(packet, CmdType::FixPort, std::to_string(user_address.sin_port), 0, username);
 
     for (auto &server_port : servers_ports_) {
       int id = server_port.first;

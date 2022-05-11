@@ -2,6 +2,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <iostream>
 
 // Notification package:  send message timestamp username
 // Follow package:        follow followed_user username
@@ -59,5 +60,9 @@ void codificatePackage(char *package, CmdType type, const std::string &informati
     std::strcat(package, raw_information.c_str());
   } else if (type == CmdType::Confirmation) {
     std::strcpy(package, raw_information.c_str());
+  } else if (type == CmdType::FixPort) {
+    std::strcpy(package, "fix_port\n");
+    std::strcat(package, raw_user.c_str());
+    std::strcat(package, raw_information.c_str());
   }
 }

@@ -72,4 +72,5 @@ public:
   void addUserRelationToDB(const std::string &user, const std::string &follower);
   bool isPrimary() { return id_ == primary_id_; }
   void replicateRequests(char *packet);
+  void fixClientPort(std::string username, struct sockaddr_in user_address);
 };
