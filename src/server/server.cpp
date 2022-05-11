@@ -1,4 +1,5 @@
 #include "server.h"
+#include <arpa/inet.h>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -19,7 +20,7 @@ void Server::sigintHandler(int sig_num) {
   exit(0);
 }
 
-Server::Server() : new_notification_id_(0), ui_(FileType::None) {}
+Server::Server() : new_notification_id_(0), ui_(FileType::None), primary_id_(1) {}
 
 bool Server::isLogged(const std::string &username) {
   return logged_users_.find(username) != logged_users_.end();
@@ -69,7 +70,9 @@ bool Server::followUser(const Follow &follow) {
                                     // is not the current user
     User &user = users_[user_followed];
     user.addFollower(curr_user);
-    addUserRelationToDB(user_followed, curr_user);
+    if (isPrimary()) {
+      addUserRelationToDB(user_followed, curr_user);
+    }
     return true;
   }
 
@@ -126,14 +129,16 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
 }
 
 void Server::sendStoredNotifications(const std::string &username) {
-  auto itr = pending_notifications_.find(username);
-  if (itr != pending_notifications_.end()) {
-    std::vector<long int> pending = itr->second;
+  if (isPrimary()) {
+    auto itr = pending_notifications_.find(username);
+    if (itr != pending_notifications_.end()) {
+      std::vector<long int> pending = itr->second;
 
-    for (int i = 0; i < pending.size(); i++) {
-      notificationToUser((const std::string &)username, pending[i]);
+      for (int i = 0; i < pending.size(); i++) {
+        notificationToUser((const std::string &)username, pending[i]);
+      }
+      pending_notifications_.erase(username);
     }
-    pending_notifications_.erase(username);
   }
 }
 
@@ -212,8 +217,10 @@ void *Server::receiveCommand(void *args) {
       Notification received_notification(message, timestamp, username);
       pthread_mutex_lock(&_this->lock_);
       _this->addNotification(received_notification);
+      _this->replicateRequests(packet);
       pthread_mutex_unlock(&_this->lock_);
       sem_post(&_this->sem_full_);
+      _this->ui_.print(UiType::Success, "Notification from " + username + " registered.");
       // update db
     } else if (received_command == "follow") {
       std::string followed_user = decoded_packet[1];
@@ -223,16 +230,17 @@ void *Server::receiveCommand(void *args) {
       if (follow_ok) {
         _this->ui_.print(UiType::Success,
                         username + " followed " + followed_user + ".");
+        _this->replicateRequests(packet);
       } else {
         _this->ui_.print(UiType::Error, followed_user + " not found.");
       }
-      // change db
     } else if (received_command == "login") {
       std::string username = decoded_packet[1];
       pthread_mutex_lock(&_this->lock_);
       bool login_ok = _this->loginUser(username, client_address);
       if (login_ok) {
         _this->ui_.print(UiType::Success, username + " logged.");
+        _this->replicateRequests(packet);
         // send confirmation to client
         if (_this->sendCmdStatus(CMD_OK, confirmation_packet, client_address) <
             0) {
@@ -253,6 +261,8 @@ void *Server::receiveCommand(void *args) {
     } else if (received_command == "logoff") {
       std::string username = decoded_packet[1];
       _this->logoffUser(username);
+      _this->replicateRequests(packet);
+      _this->ui_.print(UiType::Success, username + " succesfully disconnected.");
     } else {
       _this->ui_.print(UiType::Error, "Command not identified.");
     }
@@ -265,27 +275,29 @@ void *Server::sendNotifications(void *args) {
   _this->ui_.print(UiType::Info, "Read to send notifications.");
   std::vector<std::string> logged_users;
   while (true) {
-    sem_wait(&_this->sem_full_);
-    pthread_mutex_lock(&_this->lock_);
-    for (auto &notification : _this->pending_notifications_) {
-      const auto &user = notification.first;
-      if (_this->isLogged(user)) {
-        logged_users.push_back(user);
-        auto &notification_ids = notification.second;
-        for (int i = 0; i < notification_ids.size(); i++) {
-          if (!_this->notificationToUser(user, notification_ids[i])) {
-            _this->ui_.print(UiType::Error, "Notification not sent.");
-          } else {
-            _this->ui_.print(UiType::Success, "Notification sent.");
+    if (_this->id_ == _this->primary_id_) {
+      sem_wait(&_this->sem_full_);
+      pthread_mutex_lock(&_this->lock_);
+      for (auto &notification : _this->pending_notifications_) {
+        const auto &user = notification.first;
+        if (_this->isLogged(user)) {
+          logged_users.push_back(user);
+          auto &notification_ids = notification.second;
+          for (int i = 0; i < notification_ids.size(); i++) {
+            if (!_this->notificationToUser(user, notification_ids[i])) {
+              _this->ui_.print(UiType::Error, "Notification not sent.");
+            } else {
+              _this->ui_.print(UiType::Success, "Notification sent.");
+            }
           }
         }
       }
+      for (std::string user : logged_users) {
+        _this->pending_notifications_.erase(user);
+      }
+      logged_users.clear();
+      pthread_mutex_unlock(&_this->lock_);
     }
-    for (std::string user : logged_users) {
-      _this->pending_notifications_.erase(user);
-    }
-    logged_users.clear();
-    pthread_mutex_unlock(&_this->lock_);
   }
 }
 
@@ -314,7 +326,7 @@ void Server::createConnection(int id) {
 
   if (bind(socket_, (struct sockaddr *)&server_address_,
            sizeof(struct sockaddr)) < 0)
-    ui_.print(UiType::Error, "Cannot perform binding.");
+    ui_.print(UiType::Error, "Cannot perform binding on server " + std::to_string(id_) + ".");
 
   sem_init(&sem_full_, 0, 0);
   pthread_mutex_init(&lock_, NULL);
@@ -333,11 +345,40 @@ void Server::createConnection(int id) {
 
 int Server::sendCmdStatus(const std::string &status, char *confirmation_packet,
                           struct sockaddr_in client_address) {
-  memset(confirmation_packet, 0, BUFFER_SIZE);
-  codificatePackage(confirmation_packet, CmdType::Confirmation, status);
-  int n =
-      sendto(socket_, confirmation_packet, strlen(confirmation_packet), 0,
-             (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));
-
+  int n = 0;
+  if (isPrimary()) {                          
+    memset(confirmation_packet, 0, BUFFER_SIZE);
+    codificatePackage(confirmation_packet, CmdType::Confirmation, status);
+    n =
+        sendto(socket_, confirmation_packet, strlen(confirmation_packet), 0,
+              (struct sockaddr *)&(client_address), sizeof(struct sockaddr_in));
+  }
   return n;
+}
+
+void Server::replicateRequests(char *packet) {
+  if (isPrimary()) {
+    int n = -1;
+    struct hostent *server = gethostbyname("localhost");
+    struct sockaddr_in rm_address;
+
+    rm_address.sin_family = AF_INET;
+    rm_address.sin_addr = *((struct in_addr *)server->h_addr);
+    bzero(&(rm_address.sin_zero), 8);
+
+    for (auto &server_port : servers_ports_) {
+      int id = server_port.first;
+      int port = server_port.second;
+
+      if (id != id_) {
+        rm_address.sin_port = htons(port);
+        n = sendto(socket_, packet, strlen(packet), 0,
+                  (const struct sockaddr *)&rm_address,
+                  sizeof(struct sockaddr_in));
+        if (n < 0) {
+          ui_.print(UiType::Error, "Failed to replicate request.");
+        }
+      }
+    }
+  }
 }

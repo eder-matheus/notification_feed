@@ -38,6 +38,7 @@ private:
 
   // attributes for server data
   int id_;
+  int primary_id_;
   int socket_;
   struct sockaddr_in server_address_;
 
@@ -69,4 +70,6 @@ public:
   bool readDatabase();
   bool readServersConfig();
   void addUserRelationToDB(const std::string &user, const std::string &follower);
+  bool isPrimary() { return id_ == primary_id_; }
+  void replicateRequests(char *packet);
 };
