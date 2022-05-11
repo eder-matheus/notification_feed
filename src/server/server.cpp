@@ -221,7 +221,9 @@ void *Server::receiveCommand(void *args) {
       _this->addNotification(received_notification);
       _this->replicateRequests(packet);
       pthread_mutex_unlock(&_this->lock_);
-      sem_post(&_this->sem_full_);
+      if (_this->isPrimary()) {
+        sem_post(&_this->sem_full_);
+      }
       _this->ui_.print(UiType::Success, "Notification from " + username + " registered.");
       // update db
     } else if (received_command == "follow") {
@@ -297,8 +299,8 @@ void *Server::sendNotifications(void *args) {
   _this->ui_.print(UiType::Info, "Read to send notifications.");
   std::vector<std::string> logged_users;
   while (true) {
+    sem_wait(&_this->sem_full_);
     if (_this->id_ == _this->primary_id_) {
-      sem_wait(&_this->sem_full_);
       pthread_mutex_lock(&_this->lock_);
       for (auto &notification : _this->pending_notifications_) {
         const auto &user = notification.first;
