@@ -466,3 +466,26 @@ void Server::updateSentNotification(int notification_id) {
     }
   }
 }
+
+void Server::sendBackupNotifications() {
+  std::vector<std::string> logged_users;
+  for (auto &notification : pending_notifications_) {
+    const auto &user = notification.first;
+    if (isLogged(user)) {
+      logged_users.push_back(user);
+      auto &notification_ids = notification.second;
+      for (int i = 0; i < notification_ids.size(); i++) {
+        if (!notificationToUser(user, notification_ids[i])) {
+          ui_.print(UiType::Error, "Notification not sent.");
+        } else {
+          ui_.print(UiType::Success, "Notification sent.");
+        }
+      }
+    }
+  }
+
+  for (std::string user : logged_users) {
+    pending_notifications_.erase(user);
+  }
+  logged_users.clear();
+}
