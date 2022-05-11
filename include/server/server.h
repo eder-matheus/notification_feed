@@ -73,4 +73,5 @@ public:
   bool isPrimary() { return id_ == primary_id_; }
   void replicateRequests(char *packet);
   void fixClientPort(std::string username, struct sockaddr_in user_address);
+  void updateSentNotification(int notification_id);
 };

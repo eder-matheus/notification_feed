@@ -64,5 +64,8 @@ void codificatePackage(char *package, CmdType type, const std::string &informati
     std::strcpy(package, "fix_port\n");
     std::strcat(package, raw_user.c_str());
     std::strcat(package, raw_information.c_str());
+  } else if (type == CmdType::UpdateNotification) {
+    std::strcpy(package, "update_notification\n");
+    std::strcat(package, raw_information.c_str());
   }
 }

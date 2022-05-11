@@ -18,6 +18,7 @@ enum class CmdType {
   Logoff,
   Confirmation,
   FixPort,
+  UpdateNotification,
   Error
 };
 

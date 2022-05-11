@@ -119,10 +119,12 @@ bool Server::notificationToUser(const std::string &user, int notification_id) {
   }
 
   notifications_[notification_id].decrementPendingReceivers();
+  updateSentNotification(notification_id);
 
   // delete notification from server if there is no pending receivers
   if (notifications_[notification_id].getPendingReceivers() == 0) {
     notifications_.erase(notification_id);
+    ui_.print(UiType::Info, "Notification " + std::to_string(notification_id) + " deleted.");
   }
 
   return true;
@@ -272,8 +274,19 @@ void *Server::receiveCommand(void *args) {
         int sessions = _this->logged_users_[username].size();
         _this->logged_users_[username][sessions - 1].sin_port = port;
       }
+    } else if (received_command == "update_notification") {
+      if (!_this->isPrimary()) {
+        int notification_id = std::stoi(decoded_packet[1]);
+        _this->notifications_[notification_id].decrementPendingReceivers();
+
+        // delete notification from server if there is no pending receivers
+        if (_this->notifications_[notification_id].getPendingReceivers() == 0) {
+          _this->notifications_.erase(notification_id);
+          _this->ui_.print(UiType::Info, "Notification " + std::to_string(notification_id) + " deleted.");
+        }
+      }
     } else {
-      _this->ui_.print(UiType::Error, "Command not identified.");
+      _this->ui_.print(UiType::Error, "Command not identified: " + std::string(packet) + ".");
     }
   }
   return 0;
@@ -404,6 +417,36 @@ void Server::fixClientPort(std::string username, struct sockaddr_in user_address
     bzero(&(rm_address.sin_zero), 8);
 
     codificatePackage(packet, CmdType::FixPort, std::to_string(user_address.sin_port), 0, username);
+
+    for (auto &server_port : servers_ports_) {
+      int id = server_port.first;
+      int port = server_port.second;
+
+      if (id != id_) {
+        rm_address.sin_port = htons(port);
+        n = sendto(socket_, packet, strlen(packet), 0,
+                  (const struct sockaddr *)&rm_address,
+                  sizeof(struct sockaddr_in));
+        if (n < 0) {
+          ui_.print(UiType::Error, "Failed to replicate request.");
+        }
+      }
+    }
+  }
+}
+
+void Server::updateSentNotification(int notification_id) {
+  if (isPrimary()) {
+    char packet[BUFFER_SIZE];
+    int n = -1;
+    struct hostent *server = gethostbyname("localhost");
+    struct sockaddr_in rm_address;
+
+    rm_address.sin_family = AF_INET;
+    rm_address.sin_addr = *((struct in_addr *)server->h_addr);
+    bzero(&(rm_address.sin_zero), 8);
+
+    codificatePackage(packet, CmdType::UpdateNotification, std::to_string(notification_id));
 
     for (auto &server_port : servers_ports_) {
       int id = server_port.first;
