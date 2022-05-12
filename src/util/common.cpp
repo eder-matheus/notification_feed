@@ -36,7 +36,8 @@ void codificatePackage(char *package, CmdType type,
   std::string raw_information_1;
   std::string raw_information_2;
 
-  if (type == CmdType::NewServer) {
+  if (type == CmdType::NewServer || type == CmdType::MonitorNew || type == CmdType::NormalRing ||
+      type == CmdType::ElectLeader || type == CmdType::FindLeader) {
     std::string temp_information = information;
     raw_information_1 = temp_information.substr(0, temp_information.find(' '));
     raw_information_1.append("\n");
@@ -95,19 +96,23 @@ void codificatePackage(char *package, CmdType type,
   } else if (type == CmdType::MonitorNew) {
     std::strcpy(package, "ring_cmd\n");
     std::strcat(package, "r_moni\n");
-    std::strcat(package, raw_information.c_str());
+    std::strcat(package, raw_information_1.c_str());
+    std::strcat(package, raw_information_2.c_str());
   } else if (type == CmdType::NormalRing) {
     std::strcpy(package, "ring_cmd\n");
     std::strcat(package, "r_norm\n");
-    std::strcat(package, raw_information.c_str());
+    std::strcat(package, raw_information_1.c_str());
+    std::strcat(package, raw_information_2.c_str());
   } else if (type == CmdType::ElectLeader) {
     std::strcpy(package, "ring_cmd\n");
     std::strcat(package, "r_elect\n");
-    std::strcat(package, raw_information.c_str());
+    std::strcat(package, raw_information_1.c_str());
+    std::strcat(package, raw_information_2.c_str());
   } else if (type == CmdType::FindLeader) {
     std::strcpy(package, "ring_cmd\n");
     std::strcat(package, "r_lead\n");
-    std::strcat(package, raw_information.c_str());
+    std::strcat(package, raw_information_1.c_str());
+    std::strcat(package, raw_information_2.c_str());
   } else if (type == CmdType::AckRing) {
     std::strcpy(package, "ring_ack\n");
   }

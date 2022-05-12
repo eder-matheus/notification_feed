@@ -55,6 +55,8 @@ private:
   pthread_mutex_t lock_;
   sem_t sem_full_;
   sem_t sem_ring_;
+  sem_t sem_ack_;
+  sem_t sem_sleep_;
 
   // constants
   const std::string db_file_name_ = "database.txt";
