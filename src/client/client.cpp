@@ -62,7 +62,7 @@ void *Client::commandToServer(void *args) {
 
   if (server_answer == CMD_FAIL) {
     _this->ui_.print(UiType::Error,
-                    "You reached the max simultaneous sessions.");
+                     "You reached the max simultaneous sessions.");
     return 0;
   } else if (server_answer == CMD_404) {
     _this->ui_.print(UiType::Error, "Server off, try again later.");
@@ -90,7 +90,8 @@ void *Client::commandToServer(void *args) {
               .count();
 
       if (type == CmdType::Send && content.size() > 128) {
-        _this->ui_.print(UiType::Error, "Message has more than 128 characters.");
+        _this->ui_.print(UiType::Error,
+                         "Message has more than 128 characters.");
       } else {
         memset(packet, 0, BUFFER_SIZE);
         codificatePackage(packet, type, content, timestamp, _this->username_);

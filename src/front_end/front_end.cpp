@@ -1,5 +1,7 @@
 #include "front_end.h"
 #include "common.h"
+#include <iostream>
+#include <map>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -7,8 +9,6 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <map>
-#include <iostream>
 
 void FrontEnd::sigintHandler(int sig_num) {
   signal(SIGINT, sigintHandler);
@@ -41,11 +41,9 @@ bool FrontEnd::readServers() {
   return true;
 }
 
-void FrontEnd::setPrimaryServer(int id) {
-  primary_server_id_ = id;
-}
+void FrontEnd::setPrimaryServer(int id) { primary_server_id_ = id; }
 
-void FrontEnd::createConnection(const std::string& port) {
+void FrontEnd::createConnection(const std::string &port) {
   struct hostent *server = gethostbyname("localhost");
   if (server == NULL) {
     ui_.print(UiType::Error, "Host does not exist.");
@@ -58,15 +56,15 @@ void FrontEnd::createConnection(const std::string& port) {
     socket_time.tv_sec = REC_WAIT;
     socket_time.tv_usec = 0;
     setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time,
-                sizeof(struct timeval));
+               sizeof(struct timeval));
 
     if (!readServers()) {
       ui_.print(UiType::Warn, "File " + cfg_file_name_ + " not found.");
     }
 
     ui_.print(UiType::Success, "Front end started using server " +
-              std::to_string(primary_server_id_) + " and port " +
-              port + ".");
+                                   std::to_string(primary_server_id_) +
+                                   " and port " + port + ".");
 
     front_end_address_.sin_family = AF_INET;
     front_end_address_.sin_port = htons(std::stoi(port));
@@ -79,8 +77,9 @@ void FrontEnd::createConnection(const std::string& port) {
     bzero(&(server_address_.sin_zero), 8);
 
     if (bind(socket_, (struct sockaddr *)&front_end_address_,
-            sizeof(struct sockaddr)) < 0)
-      ui_.print(UiType::Error, "Cannot perform binding on front end " + port + ".");
+             sizeof(struct sockaddr)) < 0)
+      ui_.print(UiType::Error,
+                "Cannot perform binding on front end " + port + ".");
 
     // sem_init(&sem_full_, 0, 0);
     // pthread_mutex_init(&lock_, NULL);
@@ -97,7 +96,7 @@ void FrontEnd::createConnection(const std::string& port) {
 
 void *FrontEnd::receive(void *args) {
   FrontEnd *_this = (FrontEnd *)args;
-  
+
   char packet[BUFFER_SIZE];
   unsigned int length = sizeof(struct sockaddr_in);
   std::string command;
@@ -107,7 +106,7 @@ void *FrontEnd::receive(void *args) {
   while (true) {
     memset(packet, 0, BUFFER_SIZE);
     int n = recvfrom(_this->socket_, packet, BUFFER_SIZE, 0,
-                      (struct sockaddr *)&from, &length);
+                     (struct sockaddr *)&from, &length);
     if (n >= 0) {
       command = decodificatePackage(packet)[0];
       if (_this->fromServer(command)) {
@@ -127,11 +126,15 @@ void *FrontEnd::receive(void *args) {
                        (const struct sockaddr *)&_this->server_address_,
                        sizeof(struct sockaddr_in));
         if (n < 0) {
-          _this->ui_.print(UiType::Error, "Failed to send package to port " +
-                    std::to_string(_this->server_address_.sin_port) + ".");
+          _this->ui_.print(UiType::Error,
+                           "Failed to send package to port " +
+                               std::to_string(_this->server_address_.sin_port) +
+                               ".");
         } else {
-          _this->ui_.print(UiType::Info, "Package sent to port " +
-                    std::to_string(_this->server_address_.sin_port) + ".");
+          _this->ui_.print(UiType::Info,
+                           "Package sent to port " +
+                               std::to_string(_this->server_address_.sin_port) +
+                               ".");
         }
 
         if (command == "logoff") {
@@ -143,12 +146,11 @@ void *FrontEnd::receive(void *args) {
   return 0;
 }
 
-bool FrontEnd::fromServer(const std::string& command) {
+bool FrontEnd::fromServer(const std::string &command) {
   bool from_server = false;
 
-  if (command == "follow" || command == "login" ||
-      command == "logoff" || command == "client_connect" ||
-      command == "send") {
+  if (command == "follow" || command == "login" || command == "logoff" ||
+      command == "client_connect" || command == "send") {
     from_server = false;
   } else {
     from_server = true;

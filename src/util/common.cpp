@@ -1,8 +1,8 @@
 #include "common.h"
 #include <cstring>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 // Notification package:  send message timestamp username
 // Follow package:        follow followed_user username
@@ -28,7 +28,8 @@ std::vector<std::string> decodificatePackage(char *package) {
   return broken_package;
 }
 
-void codificatePackage(char *package, CmdType type, const std::string &information,
+void codificatePackage(char *package, CmdType type,
+                       const std::string &information,
                        unsigned long int timestamp, std::string user) {
   std::string raw_information = information.substr(0, information.find('\n'));
   raw_information.append("\n");
