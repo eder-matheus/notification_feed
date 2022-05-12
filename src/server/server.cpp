@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <algorithm>
 
 void Server::sigintHandler(int sig_num) {
   signal(SIGINT, sigintHandler);
@@ -480,10 +481,13 @@ void *Server::electionThread(void *args) {
           made_contact = true;
 
         if (!made_contact) {
-          _this->active_list_.erase(std::remove(_this->active_list_.begin(),
-                                                _this->active_list_.end(),
-                                                next),
-                                    _this->active_list_.end());
+	  std::vector<int>::iterator it = std::find(_this->active_list_.begin(), _this->active_list_.end(), next);
+	  //int i = it - _this->active_list_.begin();
+	  _this->active_list_.erase(it);
+          //_this->active_list_.erase(std::remove(_this->active_list_.begin(),
+          //                                      _this->active_list_.end(),
+          //                                      next),
+          //                          _this->active_list_.end());
           if (next == _this->primary_id_ ||
               _this->ring_status_ == CmdType::FindLeader) {
             _this->ring_status_ = CmdType::ElectLeader;

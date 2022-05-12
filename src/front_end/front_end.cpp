@@ -9,6 +9,8 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <string.h>
+#include <signal.h>
 
 void FrontEnd::sigintHandler(int sig_num) {
   signal(SIGINT, sigintHandler);

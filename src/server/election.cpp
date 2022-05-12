@@ -1,6 +1,10 @@
 #include "election.h"
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <unordered_map>
+
+std::unordered_map<std::string, CmdType> ring_commands;
 
 void initRingCommands() {
   ring_commands["r_new"] = CmdType::NewServer;
@@ -18,7 +22,7 @@ int findFirstNeighboor(int id, int last_try, std::vector<int> topology) {
   if (last_try != -1)
     id = last_try;
 
-  auto it = find(topology.begin(), topology.end(), id);
+  auto it = std::find(topology.begin(), topology.end(), id);
   int id_position = it - topology.begin();
 
   if (topology[id_position + 1] == id)
@@ -38,7 +42,7 @@ int getNextId(int id, std::vector<int> active_list) {
   if (active_list.size() == 1 && id == active_list[0]) {
     next_id = -1;
   } else {
-    auto it = find(active_list.begin(), active_list.end(), id);
+    auto it = std::find(active_list.begin(), active_list.end(), id);
     int id_position = it - active_list.begin();
     // id changes in position
 
@@ -86,6 +90,6 @@ CmdType ringIter(int id, std::vector<int> act_list, std::vector<int> recv_list,
 
 int electPrimary(std::vector<int> active_list) {
 
-  auto it = max_element(std::begin(active_list), std::end(active_list));
+  auto it = std::max_element(std::begin(active_list), std::end(active_list));
   return *it;
 }

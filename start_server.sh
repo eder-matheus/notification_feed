@@ -13,9 +13,10 @@ if [ -d "server_env" ]; then
     ln -s ../config/servers_config.cfg
   fi
   if [ ! $# -eq 0 ]; then
-    for (( i = 1; i <= $1; i++ )); do
-	    ./server $i &;
-    done
+    #for (( i = 1; i <= $1; i++ )); do
+    #	    ./server $i &;
+    #done
+    ./server $1
   fi
 	cd -
 fi
