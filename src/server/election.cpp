@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
+#include <iostream>
 
 std::unordered_map<std::string, CmdType> ring_commands;
 
@@ -17,21 +18,32 @@ void initRingCommands() {
 int findFirstNeighboor(int id, int last_try, std::vector<int> topology) {
 
   int next_id;
+  int i;
+  // if its the first time
+  if (last_try == -1)
+     last_try = id;
 
-  // if its not the first time
-  if (last_try != -1)
-    id = last_try;
+  //auto it = std::find(topology.begin(), topology.end(), last_try);
+  //int id_position = it - topology.begin();
+ 
+  for(i = 0; i < topology.size(); i++) {
+    if(topology[i] == last_try)
+      break;
+  }
 
-  auto it = std::find(topology.begin(), topology.end(), id);
-  int id_position = it - topology.begin();
-
-  if (topology[id_position + 1] == id)
-    next_id = -2;
-  else if (id_position + 1 == topology.size())
+  int id_position;
+  id_position = i;
+  
+  if (id_position + 1 == topology.size()) {
     next_id = topology[0];
+    if(next_id == id)
+      next_id = -2;
+  }
+  else if (topology[id_position + 1] == id)
+    next_id = -2;
   else
     next_id = topology[id_position + 1];
-
+  
   return next_id;
 }
 

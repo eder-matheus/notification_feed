@@ -299,11 +299,14 @@ void *Server::receiveCommand(void *args) {
         }
       }
     } else if (received_command == "ring_ack") {
+      std::cout << "\nsomeone sent me an ack!\n";
       sem_post(&_this->sem_ring_);
     } else if (received_command == "ring_cmd") {
       _this->ring_list_.clear();
       _this->ring_sender_port_ =
           _this->servers_ports_[std::stoi(decoded_packet[2])];
+      _this->ui_.print(UiType::Info, "someone has contacted me " + decoded_packet[2]);
+      std::cout << "and it was... " << client_address.sin_port << "\n";
       _this->ring_status_ = ring_commands[decoded_packet[1]];
       for (char const &id : decoded_packet[3]) {
         if (id != ' ') {
@@ -362,6 +365,7 @@ void *Server::electionThread(void *args) {
   std::string package_content;
   int s;
   struct timespec ts;
+ 
 
   if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
     std::exit(-1);
@@ -375,11 +379,11 @@ void *Server::electionThread(void *args) {
   _this->ring_status_ = CmdType::NewServer;
   _this->active_list_.push_back(_this->id_);
   std::string my_id = std::to_string(_this->id_);
-  my_id.append("\n");
+  my_id.append(" ");
   my_id.append(my_id);
-  my_id.append("\n");
+  //my_id.append("\n");
   codificatePackage(packet, _this->ring_status_, my_id);
-
+  std::cout << "\nim going to send the following packet to the ring: " << packet << "\n";
   bool made_contact = false;
   while (!made_contact) {
     last_try = findFirstNeighboor(_this->id_, last_try, _this->topology_);
@@ -406,13 +410,15 @@ void *Server::electionThread(void *args) {
         made_contact = true;
     }
   }
+  purge_old_list = false;
   while (true) {
     update_list = false;
     made_contact = false;
-    purge_old_list = false;
     sem_wait(&_this->sem_ring_);
+    _this->ui_.print(UiType::Info, "Someone has sent me a ring command");
     _this->ring_status_ = CmdType::AckRing;
     codificatePackage(packet, _this->ring_status_, std::to_string(1));
+    std::cout << std::to_string(rm_address.sin_port) + "\n";
     rm_address.sin_port = htons(_this->ring_sender_port_);
     int n = sendto(_this->socket_, packet, strlen(packet), 0,
                    (const struct sockaddr *)&rm_address,
@@ -427,15 +433,18 @@ void *Server::electionThread(void *args) {
     // ring status needs to cover everything that can happen with the ring
     if (_this->ring_status_ == CmdType::NewServer ||
         _this->ring_status_ == CmdType::MonitorNew) {
+      int active_size = _this->active_list_.size();
       _this->active_list_ = _this->ring_list_;
       _this->active_list_.push_back(_this->id_);
-      if (_this->ring_status_ == CmdType::MonitorNew) {
+      if (_this->ring_status_ == CmdType::MonitorNew && active_size > 1) {
         // will not send anything since another list is already in the ring
         purge_old_list = true;
       }
+      _this->ring_status_ = CmdType::NewServer;
     }
     if (_this->ring_status_ == CmdType::NormalRing && purge_old_list) {
       _this->ring_list_.clear();
+      purge_old_list = false;
     }
     if (_this->ring_status_ == CmdType::NormalRing && update_list) {
       _this->active_list_ = _this->ring_list_;
@@ -457,7 +466,11 @@ void *Server::electionThread(void *args) {
     }
     codificatePackage(packet, _this->ring_status_, package_content);
 
+    std::cout << "\ni did send an ack and now I am going to forward the list that i received\n";
+    std::cout << "\nbefore the made contact while and after making the package\n";
+    std::cout << "\npackage content: " + package_content + "\n";
     while (!made_contact && !purge_old_list) {
+      std::cout << "\nim inside the loop\n";
       int next = getNextId(_this->id_, _this->active_list_);
       if (next == -1) {
         _this->primary_id_ = _this->id_;
@@ -477,7 +490,9 @@ void *Server::electionThread(void *args) {
         if (s == -1) {
           if (errno == ETIMEDOUT)
             made_contact = false;
+	    _this->ui_.print(UiType::Info, "No Contact!");
         } else
+	  _this->ui_.print(UiType::Info, "Ack received from " + std::to_string(next));
           made_contact = true;
 
         if (!made_contact) {
@@ -503,6 +518,7 @@ void *Server::electionThread(void *args) {
         }
       }
     }
+    _this->ui_.print(UiType::Info, "current leader: " + std::to_string(_this->primary_id_));
     package_content.clear();
   }
 }
@@ -544,9 +560,10 @@ void Server::createConnection(int id) {
   pthread_t receiverTid;
   pthread_t electionTid;
 
+  pthread_create(&electionTid, NULL, electionThread, (void *)this);
   pthread_create(&receiverTid, NULL, receiveCommand, (void *)this);
   pthread_create(&senderTid, NULL, sendNotifications, (void *)this);
-  pthread_create(&electionTid, NULL, electionThread, (void *)this);
+  //pthread_create(&electionTid, NULL, electionThread, (void *)this);
 
   pthread_join(receiverTid, NULL);
   pthread_join(senderTid, NULL);

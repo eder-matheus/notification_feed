@@ -31,9 +31,23 @@ std::vector<std::string> decodificatePackage(char *package) {
 void codificatePackage(char *package, CmdType type,
                        const std::string &information,
                        unsigned long int timestamp, std::string user) {
-  std::string raw_information = information.substr(0, information.find('\n'));
-  raw_information.append("\n");
 
+  std::string raw_information;
+  std::string raw_information_1;
+  std::string raw_information_2;
+
+  if (type == CmdType::NewServer) {
+    std::string temp_information = information;
+    raw_information_1 = temp_information.substr(0, temp_information.find(' '));
+    raw_information_1.append("\n");
+    temp_information.erase(0, temp_information.find(' ') + sizeof(char));
+    raw_information_2 = temp_information.substr(0, temp_information.find('\n'));
+    raw_information_2.append("\n");
+  }
+  else {
+    raw_information = information.substr(0, information.find('\n'));
+    raw_information.append("\n");
+  }
   std::string time_string = std::to_string(timestamp);
   time_string.append("\n");
 
@@ -76,7 +90,8 @@ void codificatePackage(char *package, CmdType type,
   } else if (type == CmdType::NewServer) {
     std::strcpy(package, "ring_cmd\n");
     std::strcat(package, "r_new\n");
-    std::strcat(package, raw_information.c_str());
+    std::strcat(package, raw_information_1.c_str());
+    std::strcat(package, raw_information_2.c_str());
   } else if (type == CmdType::MonitorNew) {
     std::strcpy(package, "ring_cmd\n");
     std::strcat(package, "r_moni\n");
