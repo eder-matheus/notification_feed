@@ -6,3 +6,4 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_subdirectory(src/client)
 add_subdirectory(src/server)
+add_subdirectory(src/front_end)
