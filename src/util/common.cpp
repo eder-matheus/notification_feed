@@ -44,6 +44,11 @@ void codificatePackage(char *package, CmdType type, const std::string &informati
     std::strcat(package, raw_information.c_str());
     std::strcat(package, time_string.c_str());
     std::strcat(package, raw_user.c_str());
+  } else if (type == CmdType::ServerSend) {
+    std::strcpy(package, "server_send\n");
+    std::strcat(package, raw_information.c_str());
+    std::strcat(package, time_string.c_str());
+    std::strcat(package, raw_user.c_str());
   } else if (type == CmdType::Follow) {
     std::strcpy(package, "follow\n");
     std::strcat(package, raw_information.c_str());

@@ -12,6 +12,7 @@
 
 enum class CmdType {
   Send,
+  ServerSend,
   Follow,
   Login,
   Receive,
