@@ -6,6 +6,7 @@ elif [ "$1" = "nuke" ]; then
 	rm -rf build
 	rm -rf client_env
 	rm -rf server_env
+  rm -rf front_end_env
 else
 	if [ ! -d "build" ]; then
 		mkdir build

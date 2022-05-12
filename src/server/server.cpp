@@ -300,12 +300,13 @@ void *Server::receiveCommand(void *args) {
     } else if (received_command == "ring_ack") {
       sem_post(&_this->sem_ring_);
     } else if (received_command == "ring_cmd") {
-      received_list_.clear();
-      ring_sender_port_ = servers_ports_[std::stoi(decoded_packet[2])];
-      ring_status_ = ring_commands[decoded_packet[1]];
+      _this->ring_list_.clear();
+      _this->ring_sender_port_ =
+          _this->servers_ports_[std::stoi(decoded_packet[2])];
+      _this->ring_status_ = ring_commands[decoded_packet[1]];
       for (char const &id : decoded_packet[3]) {
         if (id != ' ') {
-          received_list_.push_back(std::stoi(id));
+          _this->ring_list_.push_back(id - '0');
         }
       }
       sem_post(&_this->sem_ring_);
@@ -349,46 +350,49 @@ void *Server::sendNotifications(void *args) {
 }
 
 void *Server::electionThread(void *args) {
+  initRingCommands();
   Server *_this = (Server *)args;
   int last_try = -1;
   struct hostent *server = gethostbyname("localhost");
   struct sockaddr_in rm_address;
   char packet[BUFFER_SIZE];
   bool update_list = false;
+  bool purge_old_list = false;
   std::string package_content;
   int s;
   struct timespec ts;
 
   if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
-    return -1;
+    std::exit(-1);
 
   rm_address.sin_family = AF_INET;
   rm_address.sin_addr = *((struct in_addr *)server->h_addr);
   bzero(&(rm_address.sin_zero), 8);
 
-  _this->ui_.print(UIType::Info, "Ready to run the ring alg.");
+  _this->ui_.print(UiType::Info, "Ready to run the ring alg.");
   // create contact packet ("ring_cmd\nCmdType::New\nmy_id\nid_\n")
-  ring_status_ = CmdType::NewServer;
-  active_list_.push_back(id_);
-  std::string my_id = std::to_string(id_);
+  _this->ring_status_ = CmdType::NewServer;
+  _this->active_list_.push_back(_this->id_);
+  std::string my_id = std::to_string(_this->id_);
   my_id.append("\n");
   my_id.append(my_id);
   my_id.append("\n");
-  codificatePackage(packet, ring_status_, my_id);
+  codificatePackage(packet, _this->ring_status_, my_id);
 
+  bool made_contact = false;
   while (!made_contact) {
-    last_try = findFirstNeighboor(id_, last_try, topology_);
+    last_try = findFirstNeighboor(_this->id_, last_try, _this->topology_);
     if (last_try == -2) {
       made_contact = true;
-      primary_id_ = id_;
+      _this->primary_id_ = _this->id_;
     } else {
-      int port = servers_ports_[last_try];
+      int port = _this->servers_ports_[last_try];
       rm_address.sin_port = htons(port);
-      n = sendto(socket_, packet, strlen(packet), 0,
-                 (const struct sockaddr *)&rm_address,
-                 sizeof(struct sockaddr_in));
+      int n = sendto(_this->socket_, packet, strlen(packet), 0,
+                     (const struct sockaddr *)&rm_address,
+                     sizeof(struct sockaddr_in));
       if (n < 0) {
-        ui_.print(UiType::Error, "Failed to send message to neighboor");
+        _this->ui_.print(UiType::Error, "Failed to send message to neighboor");
       }
       ts.tv_sec += 1;
       while ((s = sem_timedwait(&_this->sem_ring_, &ts)) == -1 &&
@@ -406,61 +410,64 @@ void *Server::electionThread(void *args) {
     made_contact = false;
     purge_old_list = false;
     sem_wait(&_this->sem_ring_);
-    ring_status_ = CmdType::AckRing;
-    codificatePackage(packet, ring_status_, std::to_string(1));
-    rm_address.sin_port = htons(ring_sender_port_);
-    n = sendto(socket_, packet, strlen(packet), 0,
-               (const struct sockaddr *)&rm_address,
-               sizeof(struct sockaddr_in));
+    _this->ring_status_ = CmdType::AckRing;
+    codificatePackage(packet, _this->ring_status_, std::to_string(1));
+    rm_address.sin_port = htons(_this->ring_sender_port_);
+    int n = sendto(_this->socket_, packet, strlen(packet), 0,
+                   (const struct sockaddr *)&rm_address,
+                   sizeof(struct sockaddr_in));
     if (n < 0) {
-      ui_.print(UiType::Error, "Failed to ack neighboor");
+      _this->ui_.print(UiType::Error, "Failed to ack neighboor");
     }
 
-    ring_status_ =
-        ringIter(active_list_, received_list_, ring_status_, update_list);
+    _this->ring_status_ =
+        ringIter(_this->id_, _this->active_list_, _this->ring_list_,
+                 _this->ring_status_, update_list);
     // ring status needs to cover everything that can happen with the ring
-    if (ring_status_ == CmdType::NewServer ||
-        ring_status_ == CmdType::MonitorNew) {
-      active_list_ = received_list;
-      active_list_push_back(id_);
-      if (ring_status_ == CmdType::MonitorNew) {
+    if (_this->ring_status_ == CmdType::NewServer ||
+        _this->ring_status_ == CmdType::MonitorNew) {
+      _this->active_list_ = _this->ring_list_;
+      _this->active_list_.push_back(_this->id_);
+      if (_this->ring_status_ == CmdType::MonitorNew) {
         // will not send anything since another list is already in the ring
         purge_old_list = true;
       }
     }
-    if (ring_status_ == CmdType::NormalRing && purge_old_list) {
-      received_list_.clear();
+    if (_this->ring_status_ == CmdType::NormalRing && purge_old_list) {
+      _this->ring_list_.clear();
     }
-    if (ring_status_ == CmdType::NormalRing && update_list) {
-      active_list_ = received_list_;
+    if (_this->ring_status_ == CmdType::NormalRing && update_list) {
+      _this->active_list_ = _this->ring_list_;
     }
-    if (ring_status_ == CmdType::ElectLeader) {
-      active_list_ = received_list_ active_list_.push_back(id_);
+    if (_this->ring_status_ == CmdType::ElectLeader) {
+      _this->active_list_ = _this->ring_list_;
+      _this->active_list_.push_back(_this->id_);
     }
-    if (ring_status_ == CmdType::FindLeader) {
-      active_list_ = received_list_ primary_id_ = electPrimary();
+    if (_this->ring_status_ == CmdType::FindLeader) {
+      _this->active_list_ = _this->ring_list_;
+      _this->primary_id_ = electPrimary(_this->active_list_);
     }
 
-    package_content = std::to_string(id_);
+    package_content = std::to_string(_this->id_);
     package_content.append("\n");
-    for (int active_id : active_list_) {
+    for (int active_id : _this->active_list_) {
       package_content.append(std::to_string(active_id));
-      package_content.apprend(" ");
+      package_content.append(" ");
     }
-    codificatePackage(packet, ring_status_, package_content);
+    codificatePackage(packet, _this->ring_status_, package_content);
 
     while (!made_contact && !purge_old_list) {
-      next = getNextId(id_, active_list_);
+      int next = getNextId(_this->id_, _this->active_list_);
       if (next == -1) {
-        primary_id_ = id_;
+        _this->primary_id_ = _this->id_;
         made_contact = true;
       } else {
-        rm_address.sin_port = htons(servers_ports_[next]);
-        n = sendto(socket_, packet, strlen(packet), 0,
-                   (const struct sockaddr *)&rm_address_,
+        rm_address.sin_port = htons(_this->servers_ports_[next]);
+        n = sendto(_this->socket_, packet, strlen(packet), 0,
+                   (const struct sockaddr *)&rm_address,
                    sizeof(struct sockaddr_in));
         if (n < 0) {
-          ui_.print(UiType::Error, "Failed to send list to next");
+          _this->ui_.print(UiType::Error, "Failed to send list to next");
         }
 
         while ((s = sem_timedwait(&_this->sem_ring_, &ts)) == -1 &&
@@ -473,19 +480,21 @@ void *Server::electionThread(void *args) {
           made_contact = true;
 
         if (!made_contact) {
-          active_list_.erase(
-              std::remove(active_list_.begin(), active_list_.end(), next),
-              active_list_.end());
-          if (next == primary_id_ || ring_status_ == CmdType::FindLeader) {
-            ring_status_ = CmdType::ElectLeader;
-            // active_list_.clear();
-            // active_list_.push_back(id_);
+          _this->active_list_.erase(std::remove(_this->active_list_.begin(),
+                                                _this->active_list_.end(),
+                                                next),
+                                    _this->active_list_.end());
+          if (next == _this->primary_id_ ||
+              _this->ring_status_ == CmdType::FindLeader) {
+            _this->ring_status_ = CmdType::ElectLeader;
+            // _this->active_list_.clear();
+            // _this->active_list_.push_back(id_);
             package_content.clear();
-            package_content = std::to_string(id_);
+            package_content = std::to_string(_this->id_);
             package_content.append("\n");
-            package_content.append(std::to_string(id_);
-	    package_content.append("\n");
-	    codificatePackage(packet, ring_status_, package_content);
+            package_content.append(std::to_string(_this->id_));
+            package_content.append("\n");
+            codificatePackage(packet, _this->ring_status_, package_content);
           }
         }
       }

@@ -1,4 +1,4 @@
-#include "common.h"
+#include "election.h"
 #include "notification.h"
 #include "ui.h"
 #include "user.h"
@@ -73,6 +73,7 @@ public:
   bool notificationToUser(const std::string &user, int notification_id);
   static void *sendNotifications(void *args);
   static void *receiveCommand(void *args);
+  static void *electionThread(void *args);
   void createConnection(int id);
   int sendCmdStatus(const std::string &status, char *confirmation_packet,
                     struct sockaddr_in client_address);

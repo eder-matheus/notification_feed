@@ -5,7 +5,8 @@ add_executable(server
 	../util/common.cpp
 	../util/notification.cpp
 	../util/ui.cpp
-	server.cpp
+	election.cpp
+  server.cpp
 	user.cpp
 )
 
