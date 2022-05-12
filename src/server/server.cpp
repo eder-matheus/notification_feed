@@ -172,6 +172,7 @@ bool Server::readServersConfig() {
       if (line[0] == '#')
         continue;
       int id = std::stoi(line.substr(0, line.find(' ')));
+      topology_.push_back(id);
       line.erase(0, line.find(' ') + sizeof(char));
       int port = std::stoi(line);
       if (servers_ports_.find(id) == servers_ports_.end()) {
@@ -287,6 +288,18 @@ void *Server::receiveCommand(void *args) {
           _this->ui_.print(UiType::Info, "Notification " + std::to_string(notification_id) + " deleted.");
         }
       }
+    } else if(received_command == "ring_ack") {
+      sem_post(&_this->sem_ring_);
+    } else if(received_command == "ring_cmd") {
+      received_list_.clear();
+      ring_sender_port_ = servers_ports_[std::stoi(decoded_packet[2])];
+      ring_status_ = ring_commands[decoded_packet[1]];
+      for(char const &id : decoded_packet[3]) {
+        if(id != ' ') {
+	  received_list_.push_back(std::stoi(id));
+	}
+      }
+      sem_post(&_this->sem_ring_);
     } else {
       _this->ui_.print(UiType::Error, "Command not identified: " + std::string(packet) + ".");
     }
@@ -325,6 +338,150 @@ void *Server::sendNotifications(void *args) {
   }
 }
 
+void *Server::electionThread(void *args) {
+  Server *_this = (Server *)args;
+  int last_try = -1;
+  struct hostent *server = gethostbyname("localhost");
+  struct sockaddr_in rm_address;
+  char packet[BUFFER_SIZE];
+  bool update_list = false;
+  std::string package_content;
+  int s;
+  struct timespec ts;
+
+  if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
+    return -1;
+
+  rm_address.sin_family = AF_INET;
+  rm_address.sin_addr = *((struct in_addr *)server->h_addr);
+  bzero(&(rm_address.sin_zero), 8);
+ 
+  _this->ui_.print(UIType::Info, "Ready to run the ring alg.");
+  //create contact packet ("ring_cmd\nCmdType::New\nmy_id\nid_\n")
+  ring_status_ = CmdType::NewServer;
+  active_list_.push_back(id_);
+  std::string my_id = std::to_string(id_);
+  my_id.append("\n");
+  my_id.append(my_id);
+  my_id.append("\n");
+  codificatePackage(packet, ring_status_, my_id);
+
+  while(!made_contact) {
+    last_try = findFirstNeighboor(id_, last_try, topology_);
+    if(last_try == -2) {
+      made_contact = true;
+      primary_id_ = id_;
+    }
+    else {
+      int port = servers_ports_[last_try];
+      rm_address.sin_port = htons(port);
+      n = sendto(socket_, packet, strlen(packet), 0, 
+                (const struct sockaddr *)&rm_address,
+                sizeof(struct sockaddr_in));
+      if (n < 0) {
+        ui_.print(UiType::Error, "Failed to send message to neighboor");
+      }
+      ts.tv_sec += 1;
+      while ((s = sem_timedwait(&_this->sem_ring_, &ts)) == -1 && errno == EINTR)
+        continue;
+      if (s == -1) {
+        if (errno == ETIMEDOUT)
+	  made_contact = false;
+      } else
+          made_contact = true;
+    }
+  }
+  while(true) {
+    update_list = false;
+    made_contact = false;
+    purge_old_list = false;
+    sem_wait(&_this->sem_ring_);
+    ring_status_ = CmdType::AckRing;
+    codificatePackage(packet, ring_status_, std::to_string(1));
+    rm_address.sin_port = htons(ring_sender_port_);
+    n = sendto(socket_, packet, strlen(packet), 0,
+	      (const struct sockaddr *)&rm_address,
+	      sizeof(struct sockaddr_in));
+    if (n < 0) {
+      ui_.print(UiType::Error, "Failed to ack neighboor");
+    }
+
+    ring_status_ = ringIter(active_list_, received_list_, ring_status_, update_list);
+    //ring status needs to cover everything that can happen with the ring
+    if(ring_status_ == CmdType::NewServer || ring_status_ == CmdType::MonitorNew) {
+      active_list_ = received_list;
+      active_list_push_back(id_);
+      if(ring_status_ == CmdType::MonitorNew) {
+	// will not send anything since another list is already in the ring
+      	purge_old_list = true;
+      }
+    }
+    if(ring_status_ == CmdType::NormalRing && purge_old_list) {
+      received_list_.clear();
+    }
+    if(ring_status_ == CmdType::NormalRing && update_list) {
+      active_list_ = received_list_;
+    }
+    if(ring_status_ == CmdType::ElectLeader) {
+      active_list_ = received_list_
+      active_list_.push_back(id_);
+    }
+    if(ring_status_ == CmdType::FindLeader) {
+      active_list_ = received_list_
+      primary_id_ = electPrimary();
+    }
+
+    package_content = std::to_string(id_);
+    package_content.append("\n");
+    for(int active_id : active_list_) {
+      package_content.append(std::to_string(active_id));
+      package_content.apprend(" ");
+    }
+    codificatePackage(packet, ring_status_, package_content);
+
+    while(!made_contact && !purge_old_list) {
+      next = getNextId(id_, active_list_);
+      if(next == -1) {
+        primary_id_ = id_;
+        made_contact = true;
+      }
+      else {
+        rm_address.sin_port = htons(servers_ports_[next]);
+        n = sendto(socket_, packet, strlen(packet), 0,
+                  (const struct sockaddr *)&rm_address_,
+	          sizeof(struct sockaddr_in));
+        if (n < 0) {
+          ui_.print(UiType::Error, "Failed to send list to next");
+        }
+
+        while ((s = sem_timedwait(&_this->sem_ring_, &ts)) == -1 && errno == EINTR)
+          continue;
+        if (s == -1) {
+          if (errno == ETIMEDOUT)
+            made_contact = false;
+        } else
+            made_contact = true;
+
+        if(!made_contact) {
+          active_list_.erase(std::remove(active_list_.begin(), active_list_.end(), next), active_list_.end());
+          if(next == primary_id_ || ring_status_ == CmdType::FindLeader) {
+            ring_status_ = CmdType::ElectLeader;
+	    //active_list_.clear();
+	    //active_list_.push_back(id_);
+	    package_content.clear();
+	    package_content = std::to_string(id_);
+	    package_content.append("\n");
+	    package_content.append(std::to_string(id_);
+	    package_content.append("\n");
+	    codificatePackage(packet, ring_status_, package_content);
+          }
+        }
+      }
+    }
+    package_content.clear();
+  }
+}
+
 void Server::createConnection(int id) {
   if ((socket_ = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
     ui_.print(UiType::Error, "Cannot open socket.");
@@ -352,17 +509,21 @@ void Server::createConnection(int id) {
            sizeof(struct sockaddr)) < 0)
     ui_.print(UiType::Error, "Cannot perform binding on server " + std::to_string(id_) + ".");
 
+  sem_init(&sem_ring_, 0, 0);
   sem_init(&sem_full_, 0, 0);
   pthread_mutex_init(&lock_, NULL);
 
   pthread_t senderTid;
   pthread_t receiverTid;
+  pthread_t electionTid;
 
   pthread_create(&receiverTid, NULL, receiveCommand, (void *)this);
   pthread_create(&senderTid, NULL, sendNotifications, (void *)this);
+  pthread_create(&electionTid, NULL, electionThread, (void *)this);
 
   pthread_join(receiverTid, NULL);
   pthread_join(senderTid, NULL);
+  pthread_join(electionTid, NULL);
 
   pthread_mutex_destroy(&lock_);
 }
