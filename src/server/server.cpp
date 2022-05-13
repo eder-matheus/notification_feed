@@ -328,6 +328,9 @@ void *Server::receiveCommand(void *args) {
         _this->ring_status_ = temp;
         _this->ignore_ring_pac_ = false;
       }
+    }else if (received_command == "set_leader") {
+      int primary = std::stoi(decoded_packet[1]);
+      _this->primary_id_ = primary;
     } else {
       _this->ui_.print(UiType::Error,
                        "Command not identified: " + std::string(packet) + ".");
@@ -503,6 +506,13 @@ void *Server::electionThread(void *args) {
         // purge_old_list = true;
         _this->ignore_ring_pac_ = true;
       }
+
+      if (_this->ring_status_ == CmdType::NewServer &&
+          _this->id_ == _this->primary_id_) {
+        int new_server_id = _this->ring_list_[0];
+        _this->sendLeaderToNewServer(new_server_id);
+      }
+
       _this->ring_status_ = CmdType::NewServer;
     }
     /*if (_this->ring_status_ == CmdType::NormalRing && purge_old_list) {
@@ -798,5 +808,21 @@ void Server::sendLeaderToFrontEnds() {
         ui_.print(UiType::Error, "Failed to send leader ID to front end.");
       }
     }
+  }
+}
+
+void Server::sendLeaderToNewServer(int id) {
+  int port = servers_ports_[id];
+  struct sockaddr_in new_server_address = server_address_;
+  new_server_address.sin_port = htons(port);
+
+  char packet[BUFFER_SIZE];
+  codificatePackage(packet, CmdType::SetLeader,
+                    std::to_string(primary_id_));
+  int n =
+      sendto(socket_, packet, strlen(packet), 0,
+              (const struct sockaddr *)&new_server_address, sizeof(struct sockaddr_in));
+  if (n < 0) {
+    ui_.print(UiType::Error, "Failed to send leader ID to new server " + std::to_string(id) + ".");
   }
 }

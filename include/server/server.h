@@ -90,4 +90,5 @@ public:
   void updateSentNotification(int notification_id);
   void sendBackupNotifications();
   void sendLeaderToFrontEnds();
+  void sendLeaderToNewServer(int port);
 };
