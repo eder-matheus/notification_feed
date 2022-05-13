@@ -1,9 +1,9 @@
 #include "election.h"
-#include <string>
-#include <vector>
 #include <algorithm>
-#include <unordered_map>
 #include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 std::unordered_map<std::string, CmdType> ring_commands;
 
@@ -21,29 +21,28 @@ int findFirstNeighboor(int id, int last_try, std::vector<int> topology) {
   int i;
   // if its the first time
   if (last_try == -1)
-     last_try = id;
+    last_try = id;
 
-  //auto it = std::find(topology.begin(), topology.end(), last_try);
-  //int id_position = it - topology.begin();
- 
-  for(i = 0; i < topology.size(); i++) {
-    if(topology[i] == last_try)
+  // auto it = std::find(topology.begin(), topology.end(), last_try);
+  // int id_position = it - topology.begin();
+
+  for (i = 0; i < topology.size(); i++) {
+    if (topology[i] == last_try)
       break;
   }
 
   int id_position;
   id_position = i;
-  
+
   if (id_position + 1 == topology.size()) {
     next_id = topology[0];
-    if(next_id == id)
+    if (next_id == id)
       next_id = -2;
-  }
-  else if (topology[id_position + 1] == id)
+  } else if (topology[id_position + 1] == id)
     next_id = -2;
   else
     next_id = topology[id_position + 1];
-  
+
   return next_id;
 }
 
@@ -53,7 +52,7 @@ int getNextId(int id, std::vector<int> active_list) {
 
   std::cout << "\nI will search for the next in: \n";
 
-  for(int j = 0; j < active_list.size(); j++)
+  for (int j = 0; j < active_list.size(); j++)
     std::cout << active_list[j] << "\n";
 
   if (active_list.size() == 1 && id == active_list[0]) {

@@ -5,12 +5,12 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <signal.h>
+#include <string.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <string.h>
-#include <signal.h>
 
 void FrontEnd::sigintHandler(int sig_num) {
   signal(SIGINT, sigintHandler);
@@ -116,8 +116,8 @@ void *FrontEnd::receive(void *args) {
           _this->setPrimaryServer(std::stoi(decoded_package[1]));
         } else {
           sendto(_this->socket_, packet, strlen(packet), 0,
-                (const struct sockaddr *)&_this->client_address_,
-                sizeof(struct sockaddr_in));
+                 (const struct sockaddr *)&_this->client_address_,
+                 sizeof(struct sockaddr_in));
         }
       } else {
         if (command == "login") {
