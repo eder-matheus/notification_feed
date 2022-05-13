@@ -789,7 +789,7 @@ void Server::sendLeaderToFrontEnds() {
 
     for (const struct sockaddr_in &address : addresses) {
       char packet[BUFFER_SIZE];
-      codificatePackage(packet, CmdType::UpdateNotification,
+      codificatePackage(packet, CmdType::SetLeader,
                         std::to_string(primary_id_));
       int n =
           sendto(socket_, packet, strlen(packet), 0,
