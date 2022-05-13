@@ -20,13 +20,14 @@ enum class CmdType {
   Confirmation,
   FixPort,
   UpdateNotification,
-  Error,
   NewServer,
   MonitorNew,
   NormalRing,
   ElectLeader,
   FindLeader,
-  AckRing
+  AckRing,
+  SetLeader,
+  Error
 };
 
 struct Follow {

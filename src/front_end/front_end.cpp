@@ -83,16 +83,9 @@ void FrontEnd::createConnection(const std::string &port) {
       ui_.print(UiType::Error,
                 "Cannot perform binding on front end " + port + ".");
 
-    // sem_init(&sem_full_, 0, 0);
-    // pthread_mutex_init(&lock_, NULL);
-
     pthread_t receiverTid;
-
     pthread_create(&receiverTid, NULL, receive, (void *)this);
-
     pthread_join(receiverTid, NULL);
-
-    // pthread_mutex_destroy(&lock_);
   }
 }
 
@@ -110,15 +103,22 @@ void *FrontEnd::receive(void *args) {
     int n = recvfrom(_this->socket_, packet, BUFFER_SIZE, 0,
                      (struct sockaddr *)&from, &length);
     if (n >= 0) {
-      command = decodificatePackage(packet)[0];
+      std::vector<std::string> decoded_package = decodificatePackage(packet);
+      command = decoded_package[0];
+
       if (_this->fromServer(command)) {
         std::cout << "Received from server: " << packet << "\n";
         if (command == CMD_OK) {
           _this->server_address_ = from;
         }
-        sendto(_this->socket_, packet, strlen(packet), 0,
-               (const struct sockaddr *)&_this->client_address_,
-               sizeof(struct sockaddr_in));
+
+        if (command == "set_leader") {
+          _this->setPrimaryServer(std::stoi(decoded_package[1]));
+        } else {
+          sendto(_this->socket_, packet, strlen(packet), 0,
+                (const struct sockaddr *)&_this->client_address_,
+                sizeof(struct sockaddr_in));
+        }
       } else {
         if (command == "login") {
           _this->client_address_ = from;
