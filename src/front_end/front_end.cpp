@@ -114,7 +114,7 @@ void *FrontEnd::receive(void *args) {
 
         if (command == "set_leader") {
           _this->setPrimaryServer(std::stoi(decoded_package[1]));
-          _this->server_address_.sin_port = htons(_this->primary_server_id_);
+          _this->server_address_.sin_port = htons(_this->servers_ports_[_this->primary_server_id_]);
         } else {
           sendto(_this->socket_, packet, strlen(packet), 0,
                  (const struct sockaddr *)&_this->client_address_,
