@@ -522,3 +522,19 @@ void Server::sendLeaderToFrontEnds() {
     }
   }
 }
+
+void Server::sendLeaderToNewServer(int id) {
+  int port = servers_ports_[id];
+  struct sockaddr_in new_server_address = server_address_;
+  new_server_address.sin_port = htons(port);
+
+  char packet[BUFFER_SIZE];
+  codificatePackage(packet, CmdType::SetLeader,
+                    std::to_string(primary_id_));
+  int n =
+      sendto(socket_, packet, strlen(packet), 0,
+              (const struct sockaddr *)&new_server_address, sizeof(struct sockaddr_in));
+  if (n < 0) {
+    ui_.print(UiType::Error, "Failed to send leader ID to new server " + std::to_string(id) + ".");
+  }
+}
