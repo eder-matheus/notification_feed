@@ -72,5 +72,8 @@ void codificatePackage(char *package, CmdType type, const std::string &informati
   } else if (type == CmdType::UpdateNotification) {
     std::strcpy(package, "update_notification\n");
     std::strcat(package, raw_information.c_str());
+  } else if (type == CmdType::SetLeader) {
+    std::strcpy(package, "set_leader");
+    std::strcat(package, raw_information.c_str());
   }
 }

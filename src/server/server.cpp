@@ -504,3 +504,21 @@ void Server::sendBackupNotifications() {
   }
   logged_users.clear();
 }
+
+void Server::sendLeaderToFrontEnds() {
+  for (auto &user : logged_users_) {
+    const auto &username = user.first;
+    const std::vector<struct sockaddr_in> &addresses = user.second;
+
+    for (const struct sockaddr_in &address : addresses) {
+      char packet[BUFFER_SIZE];
+      codificatePackage(packet, CmdType::UpdateNotification, std::to_string(primary_id_));
+      int n = sendto(socket_, packet, strlen(packet), 0,
+                     (const struct sockaddr *)&address,
+                     sizeof(struct sockaddr_in));
+      if (n < 0) {
+        ui_.print(UiType::Error, "Failed to send leader ID to front end.");
+      }
+    }
+  }
+}

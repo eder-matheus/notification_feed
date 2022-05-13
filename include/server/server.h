@@ -78,4 +78,5 @@ public:
   void fixClientPort(std::string username, struct sockaddr_in user_address);
   void updateSentNotification(int notification_id);
   void sendBackupNotifications();
+  void sendLeaderToFrontEnds();
 };

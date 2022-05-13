@@ -20,6 +20,7 @@ enum class CmdType {
   Confirmation,
   FixPort,
   UpdateNotification,
+  SetLeader,
   Error
 };
 
