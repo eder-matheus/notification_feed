@@ -50,6 +50,7 @@ private:
   CmdType ring_status_;
   int ring_sender_port_;
   struct sockaddr_in server_address_;
+  bool ignore_ring_pac_;
 
   // attributes for mutex and semaphores
   pthread_mutex_t lock_;

@@ -51,6 +51,11 @@ int getNextId(int id, std::vector<int> active_list) {
 
   int next_id;
 
+  std::cout << "\nI will search for the next in: \n";
+
+  for(int j = 0; j < active_list.size(); j++)
+    std::cout << active_list[j] << "\n";
+
   if (active_list.size() == 1 && id == active_list[0]) {
     next_id = -1;
   } else {
@@ -98,6 +103,7 @@ CmdType ringIter(int id, std::vector<int> act_list, std::vector<int> recv_list,
     else
       return CmdType::FindLeader;
   }
+  return CmdType::Error;
 }
 
 int electPrimary(std::vector<int> active_list) {
