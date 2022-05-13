@@ -50,6 +50,7 @@ private:
   CmdType ring_status_;
   int ring_sender_port_;
   struct sockaddr_in server_address_;
+  struct sockaddr_in ring_address_;
   bool ignore_ring_pac_;
 
   // attributes for mutex and semaphores
@@ -62,6 +63,7 @@ private:
   // constants
   const std::string db_file_name_ = "database.txt";
   const std::string cfg_file_name_ = "servers_config.cfg";
+  const int port_offset_ = 500;
 
   // aux functions
   bool isLogged(const std::string &username);

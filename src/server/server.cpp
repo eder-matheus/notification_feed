@@ -651,8 +651,18 @@ void Server::createConnection(int id) {
     ui_.print(UiType::Error,
               "Cannot perform binding on server " + std::to_string(id_) + ".");
 
+  ring_address_.sin_family = AF_INET;
+  ring_address_.sin_port = htons(servers_ports_[id_] + port_offset_);
+  ring_address_.sin_addr.s_addr = INADDR_ANY;
+  bzero(&(ring_address_.sin_zero), 8);
+
+  if (bind(socket_, (struct sockaddr *)&ring_address_,
+           sizeof(struct sockaddr)) < 0)
+    ui_.print(UiType::Error, "Cannot perform binding for ring on server " + std::to_string(id_) + ".");
+
   sem_init(&sem_ack_, 0, 0);
   sem_init(&sem_ring_, 0, 0);
+
   sem_init(&sem_full_, 0, 0);
   sem_init(&sem_sleep_, 0, 0);
   pthread_mutex_init(&lock_, NULL);
