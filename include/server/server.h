@@ -42,6 +42,7 @@ private:
   int primary_id_;
   int socket_;
   struct sockaddr_in server_address_;
+  struct sockaddr_in ring_address_;
 
   // attributes for mutex and semaphores
   pthread_mutex_t lock_;
@@ -50,6 +51,7 @@ private:
   // constants
   const std::string db_file_name_ = "database.txt";
   const std::string cfg_file_name_ = "servers_config.cfg";
+  const int port_offset_ = 500;
 
   // aux functions
   bool isLogged(const std::string &username);
