@@ -116,7 +116,7 @@ void codificatePackage(char *package, CmdType type,
   } else if (type == CmdType::AckRing) {
     std::strcpy(package, "ring_ack\n");
   } else if (type == CmdType::SetLeader) {
-    std::strcpy(package, "set_leader");
+    std::strcpy(package, "set_leader\n");
     std::strcat(package, raw_information.c_str());
   }
 }
