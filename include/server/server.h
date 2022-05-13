@@ -32,6 +32,7 @@ private:
       logged_users_;
   // map that stores the server's replicas
   // map the server ID with its port
+  std::map<int, std::string> servers_hosts_;
   std::map<int, int> servers_ports_;
   // vector with the topology of the servers
   std::vector<int> topology_;
@@ -39,7 +40,6 @@ private:
   std::vector<int> active_list_;
   // vector with the list received from the ring
   std::vector<int> ring_list_;
-
 
   Ui ui_;
 

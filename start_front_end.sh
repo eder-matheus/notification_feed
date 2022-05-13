@@ -13,7 +13,7 @@ if [ -d "front_end_env" ]; then
 
 	if [ ! $# -eq 0 ]; then
     if [ -f "front_end" ]; then
-      ./front_end "$1"
+      ./front_end "$1" "$2"
     fi
 		cd -
 	fi
