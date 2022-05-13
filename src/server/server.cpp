@@ -331,6 +331,7 @@ void *Server::receiveCommand(void *args) {
     }else if (received_command == "set_leader") {
       int primary = std::stoi(decoded_packet[1]);
       _this->primary_id_ = primary;
+      std::cout << "Primary leader is " << primary << "\n";
     } else {
       _this->ui_.print(UiType::Error,
                        "Command not identified: " + std::string(packet) + ".");
@@ -421,7 +422,7 @@ void *Server::electionThread(void *args) {
       if (n < 0) {
         _this->ui_.print(UiType::Error, "Failed to send message to neighboor");
       }
-      ts.tv_sec += 1;
+      ts.tv_sec += 3;
       while ((s = sem_timedwait(&_this->sem_ack_, &ts)) == -1 && errno == EINTR)
         continue;
       if (s == -1) {
@@ -452,9 +453,10 @@ void *Server::electionThread(void *args) {
     }
 
     std::cout << "\ni will wait before sending a command...\n";
-    ts.tv_sec += 6;
-    while ((s = sem_timedwait(&_this->sem_sleep_, &ts)) == -1 && errno == EINTR)
-      continue;
+    //ts.tv_sec += 6;
+    //while ((s = sem_timedwait(&_this->sem_sleep_, &ts)) == -1 && errno == EINTR)
+    //  continue;
+    sleep(4);
     std::cout << "\n****now i can send!****\n";
 
     _this->ring_status_ =
@@ -507,13 +509,13 @@ void *Server::electionThread(void *args) {
         _this->ignore_ring_pac_ = true;
       }
 
+      _this->ring_status_ = CmdType::NewServer;
       if (_this->ring_status_ == CmdType::NewServer &&
           _this->id_ == _this->primary_id_) {
         int new_server_id = _this->ring_list_[0];
         _this->sendLeaderToNewServer(new_server_id);
+	std::cout << "send leader " << _this->primary_id_ << " to " << new_server_id << "\n";
       }
-
-      _this->ring_status_ = CmdType::NewServer;
     }
     /*if (_this->ring_status_ == CmdType::NormalRing && purge_old_list) {
       _this->ring_list_.clear();
@@ -576,7 +578,7 @@ void *Server::electionThread(void *args) {
           _this->ui_.print(UiType::Error, "Failed to send list to next");
         }
 
-        ts.tv_sec += 1;
+        ts.tv_sec += 3;
         while ((s = sem_timedwait(&_this->sem_ack_, &ts)) == -1 &&
                errno == EINTR)
           continue;
