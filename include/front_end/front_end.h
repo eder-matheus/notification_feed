@@ -28,7 +28,7 @@ public:
   FrontEnd();
   bool readServers();
   void setPrimaryServer(int id);
-  void createConnection(const std::string& port);
+  void createConnection(const std::string& server_name, const std::string& port);
   static void *receive(void *args);
   bool fromServer(const std::string& command);
 };

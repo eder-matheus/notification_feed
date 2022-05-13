@@ -27,7 +27,7 @@ bool FrontEnd::readServers() {
         continue;
       int id = std::stoi(line.substr(0, line.find(' ')));
       line.erase(0, line.find(' ') + sizeof(char));
-      int port = std::stoi(line);
+      int port = std::stoi(line.substr(0, line.find(' ')));
       if (servers_ports_.find(id) == servers_ports_.end()) {
         servers_ports_[id] = port;
       }
@@ -45,8 +45,8 @@ void FrontEnd::setPrimaryServer(int id) {
   primary_server_id_ = id;
 }
 
-void FrontEnd::createConnection(const std::string& port) {
-  struct hostent *server = gethostbyname("localhost");
+void FrontEnd::createConnection(const std::string& server_name, const std::string& port) {
+  struct hostent *server = gethostbyname(server_name.c_str());
   if (server == NULL) {
     ui_.print(UiType::Error, "Host does not exist.");
   } else {

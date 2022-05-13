@@ -33,6 +33,7 @@ private:
   // map that stores the server's replicas
   // map the server ID with its port
   std::map<int, int> servers_ports_;
+  std::map<int, std::string> servers_hosts_;
 
   Ui ui_;
 

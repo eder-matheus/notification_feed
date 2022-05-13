@@ -173,9 +173,14 @@ bool Server::readServersConfig() {
         continue;
       int id = std::stoi(line.substr(0, line.find(' ')));
       line.erase(0, line.find(' ') + sizeof(char));
-      int port = std::stoi(line);
+      int port = std::stoi(line.substr(0, line.find(' ')));
+      line.erase(0, line.find(' ') + sizeof(char));
+      std::string host = line;
       if (servers_ports_.find(id) == servers_ports_.end()) {
         servers_ports_[id] = port;
+      }
+      if (servers_hosts_.find(id) == servers_hosts_.end()) {
+        servers_hosts_[id] = host;
       }
     }
   } else {
@@ -383,16 +388,17 @@ int Server::sendCmdStatus(const std::string &status, char *confirmation_packet,
 void Server::replicateRequests(char *packet) {
   if (isPrimary()) {
     int n = -1;
-    struct hostent *server = gethostbyname("localhost");
-    struct sockaddr_in rm_address;
-
-    rm_address.sin_family = AF_INET;
-    rm_address.sin_addr = *((struct in_addr *)server->h_addr);
-    bzero(&(rm_address.sin_zero), 8);
 
     for (auto &server_port : servers_ports_) {
       int id = server_port.first;
       int port = server_port.second;
+
+      struct hostent *server = gethostbyname(servers_hosts_[id].c_str());
+      struct sockaddr_in rm_address;
+
+      rm_address.sin_family = AF_INET;
+      rm_address.sin_addr = *((struct in_addr *)server->h_addr);
+      bzero(&(rm_address.sin_zero), 8);
 
       if (id != id_) {
         rm_address.sin_port = htons(port);
