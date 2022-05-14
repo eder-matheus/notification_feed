@@ -8,42 +8,9 @@
 std::unordered_map<std::string, CmdType> ring_commands;
 
 void initRingCommands() {
-  ring_commands["r_new"] = CmdType::NewServer;
   ring_commands["r_norm"] = CmdType::NormalRing;
-  ring_commands["r_moni"] = CmdType::MonitorNew;
-  ring_commands["r_elec"] = CmdType::ElectLeader;
+  ring_commands["r_elect"] = CmdType::ElectLeader;
   ring_commands["r_lead"] = CmdType::FindLeader;
-}
-
-int findFirstNeighboor(int id, int last_try, std::vector<int> topology) {
-
-  int next_id;
-  int i;
-  // if its the first time
-  if (last_try == -1)
-    last_try = id;
-
-  // auto it = std::find(topology.begin(), topology.end(), last_try);
-  // int id_position = it - topology.begin();
-
-  for (i = 0; i < topology.size(); i++) {
-    if (topology[i] == last_try)
-      break;
-  }
-
-  int id_position;
-  id_position = i;
-
-  if (id_position + 1 == topology.size()) {
-    next_id = topology[0];
-    if (next_id == id)
-      next_id = -2;
-  } else if (topology[id_position + 1] == id)
-    next_id = -2;
-  else
-    next_id = topology[id_position + 1];
-
-  return next_id;
 }
 
 int getNextId(int id, std::vector<int> active_list) {
@@ -71,38 +38,40 @@ int getNextId(int id, std::vector<int> active_list) {
   return next_id;
 }
 
-CmdType ringIter(int id, std::vector<int> act_list, std::vector<int> recv_list,
-                 CmdType type, bool &update) {
+CmdType ringIter(int id, std::vector<int> recv_list, CmdType type) {
+
+  CmdType new_type = CmdType::Error;
+
+  std::cout << "im in ringIter\n";
 
   if (type == CmdType::NormalRing) {
-    if (act_list == recv_list)
-      update = false;
-    else
-      update = true;
-    // active_list = recv_list (one or more fell)
-    return CmdType::NormalRing;
+    std::cout << "returning normal ring...\n";
+    new_type = type;
   }
-  if (type == CmdType::NewServer) {
-    if (recv_list.size() == 1)
-      return CmdType::MonitorNew;
-    else if (recv_list[0] == id)
-      return CmdType::NormalRing;
-    else
-      return CmdType::NewServer;
+
+  else if (type == CmdType::FindLeader) {
+    if (recv_list[0] == id) {
+      std::cout << "returning normal ring...\n";
+      new_type = CmdType::NormalRing;
+    }
+    else {
+      std::cout << "returning find leader...\n";
+      new_type = type;
+    }
   }
-  if (type == CmdType::ElectLeader) {
-    if (recv_list[0] == id)
-      return CmdType::FindLeader;
-    else
-      return CmdType::ElectLeader;
+
+  else if (type == CmdType::ElectLeader) {
+    if (recv_list[0] == id) {
+      std::cout << "returning find leader...\n";
+      new_type = CmdType::FindLeader;
+    }
+    else {
+      std::cout << "returning elect ring...\n";
+      new_type = type;
+    }
   }
-  if (type == CmdType::FindLeader) {
-    if (recv_list[0] == id)
-      return CmdType::NormalRing;
-    else
-      return CmdType::FindLeader;
-  }
-  return CmdType::Error;
+
+  return new_type;
 }
 
 int electPrimary(std::vector<int> active_list) {

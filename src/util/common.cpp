@@ -32,12 +32,13 @@ void codificatePackage(char *package, CmdType type,
                        const std::string &information,
                        unsigned long int timestamp, std::string user) {
 
+  memset(package, 0, BUFFER_SIZE);
+
   std::string raw_information;
   std::string raw_information_1;
   std::string raw_information_2;
 
-  if (type == CmdType::NewServer || type == CmdType::MonitorNew || type == CmdType::NormalRing ||
-      type == CmdType::ElectLeader || type == CmdType::FindLeader) {
+  if (type == CmdType::NormalRing || type == CmdType::ElectLeader || type == CmdType::FindLeader) {
     std::string temp_information = information;
     raw_information_1 = temp_information.substr(0, temp_information.find(' '));
     raw_information_1.append("\n");
@@ -88,16 +89,6 @@ void codificatePackage(char *package, CmdType type,
   } else if (type == CmdType::UpdateNotification) {
     std::strcpy(package, "update_notification\n");
     std::strcat(package, raw_information.c_str());
-  } else if (type == CmdType::NewServer) {
-    std::strcpy(package, "ring_cmd\n");
-    std::strcat(package, "r_new\n");
-    std::strcat(package, raw_information_1.c_str());
-    std::strcat(package, raw_information_2.c_str());
-  } else if (type == CmdType::MonitorNew) {
-    std::strcpy(package, "ring_cmd\n");
-    std::strcat(package, "r_moni\n");
-    std::strcat(package, raw_information_1.c_str());
-    std::strcat(package, raw_information_2.c_str());
   } else if (type == CmdType::NormalRing) {
     std::strcpy(package, "ring_cmd\n");
     std::strcat(package, "r_norm\n");
@@ -118,5 +109,9 @@ void codificatePackage(char *package, CmdType type,
   } else if (type == CmdType::SetLeader) {
     std::strcpy(package, "set_leader\n");
     std::strcat(package, raw_information.c_str());
+  }
+  else {
+    std::cout << "I cant codificate the following info: \n" << information << "\n";
+    std::strcpy(package, "Error during codification!!\n");
   }
 }

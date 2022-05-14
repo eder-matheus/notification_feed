@@ -20,8 +20,6 @@ enum class CmdType {
   Confirmation,
   FixPort,
   UpdateNotification,
-  NewServer,
-  MonitorNew,
   NormalRing,
   ElectLeader,
   FindLeader,

@@ -38,8 +38,6 @@ private:
   std::vector<int> topology_;
   // vector with the active servers
   std::vector<int> active_list_;
-  // vector with the list received from the ring
-  std::vector<int> ring_list_;
 
   Ui ui_;
 
@@ -47,18 +45,15 @@ private:
   int id_;
   int primary_id_;
   int socket_;
+  int ring_socket_;
   CmdType ring_status_;
   int ring_sender_port_;
   struct sockaddr_in server_address_;
   struct sockaddr_in ring_address_;
-  bool ignore_ring_pac_;
 
   // attributes for mutex and semaphores
   pthread_mutex_t lock_;
   sem_t sem_full_;
-  sem_t sem_ring_;
-  sem_t sem_ack_;
-  sem_t sem_sleep_;
 
   // constants
   const std::string db_file_name_ = "database.txt";
