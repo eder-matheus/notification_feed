@@ -364,7 +364,8 @@ void *Server::electionThread(void *args) {
   bool made_contact = false;
   std::vector<int> merging_list;
 
-  // prepares the address of the neighboor server. Port will be set as necessary (left or right)
+  // prepares the address of the neighboor server. Port will be set as necessary
+  // (left or right)
   neighbor_addr.sin_family = AF_INET;
   neighbor_addr.sin_addr = *((struct in_addr *)server->h_addr);
   bzero(&(neighbor_addr.sin_zero), 8);
@@ -376,11 +377,11 @@ void *Server::electionThread(void *args) {
   _this->ring_status_ = CmdType::NormalRing;
 
   // the primary starts the ring by sending the list
-  if(_this->id_ == _this->primary_id_) {
+  if (_this->id_ == _this->primary_id_) {
 
     sleep(3);
     next = getNextId(_this->id_, _this->active_list_);
-    
+
     // create contact packet ("ring_cmd\nCmdType::Normal\nmy_id\nn1 n2 n3\n")
     package_content = std::to_string(_this->id_);
     package_content.append(" ");
@@ -392,8 +393,9 @@ void *Server::electionThread(void *args) {
     package_content[package_content.size() - 1] = '\n';
     codificatePackage(packet, _this->ring_status_, package_content);
 
-    while(made_contact == false) {
-      neighbor_addr.sin_port = htons(_this->servers_ports_[next] + _this->port_offset_);
+    while (made_contact == false) {
+      neighbor_addr.sin_port =
+          htons(_this->servers_ports_[next] + _this->port_offset_);
       n = sendto(_this->ring_socket_, packet, strlen(packet), 0,
                  (const struct sockaddr *)&neighbor_addr,
                  sizeof(struct sockaddr_in));
@@ -403,21 +405,22 @@ void *Server::electionThread(void *args) {
 
       socket_time.tv_sec = 1;
       socket_time.tv_usec = 0;
-      if (setsockopt(_this->ring_socket_, SOL_SOCKET, SO_RCVTIMEO, 
-	             &socket_time, sizeof(socket_time)) < 0)
+      if (setsockopt(_this->ring_socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time,
+                     sizeof(socket_time)) < 0)
         std::cout << "Failed to set the socket timeout\n";
       memset(packet_ack, 0, BUFFER_SIZE);
       n = recvfrom(_this->ring_socket_, packet_ack, BUFFER_SIZE, 0,
-                      (struct sockaddr *)&(neighbor_addr), &(neighbor_length));
+                   (struct sockaddr *)&(neighbor_addr), &(neighbor_length));
       if (n < 0) {
         _this->ui_.print(UiType::Error, "Timeout reached\n");
       } else {
-        std::vector<std::string> decoded_packet = decodificatePackage(packet_ack);
+        std::vector<std::string> decoded_packet =
+            decodificatePackage(packet_ack);
         std::string received_command = decoded_packet[0];
-        if(received_command == "ring_ack") {
+        if (received_command == "ring_ack") {
           made_contact = true;
-	  std::cout << "\nIVE MADE CONTACT\n";
-	}
+          std::cout << "\nIVE MADE CONTACT\n";
+        }
       }
     }
   }
@@ -426,19 +429,18 @@ void *Server::electionThread(void *args) {
     package_content.clear();
     made_contact = false;
     recv_list.clear();
-   
 
     // Disable socket timeout
     socket_time.tv_sec = 6;
     socket_time.tv_usec = 0;
-    if (setsockopt(_this->ring_socket_, SOL_SOCKET, SO_RCVTIMEO,
-                   &socket_time, sizeof(socket_time)) < 0) {
+    if (setsockopt(_this->ring_socket_, SOL_SOCKET, SO_RCVTIMEO, &socket_time,
+                   sizeof(socket_time)) < 0) {
       std::cout << "Failed to disable the socket timeout\n";
     }
     memset(packet, 0, BUFFER_SIZE);
     n = recvfrom(_this->ring_socket_, packet, BUFFER_SIZE, 0,
-                    (struct sockaddr *)&(neighbor_addr), &(neighbor_length));
-    if(n < 1) {
+                 (struct sockaddr *)&(neighbor_addr), &(neighbor_length));
+    if (n < 1) {
       std::cout << "I am the new leader, please do something gui and eder\n";
       // montar um pacote com type election
       // enviar para o vizinho mais proximo vivo
@@ -451,15 +453,15 @@ void *Server::electionThread(void *args) {
     std::string received_command = decoded_packet[0];
     if (received_command == "ring_cmd") {
       _this->ring_status_ = ring_commands[decoded_packet[1]];
-      _this->ring_sender_port_ = _this->servers_ports_[std::stoi(decoded_packet[2])] +
-                                                                  _this->port_offset_;
+      _this->ring_sender_port_ =
+          _this->servers_ports_[std::stoi(decoded_packet[2])] +
+          _this->port_offset_;
       for (char const &id : decoded_packet[3]) {
         if (id != ' ') {
           recv_list.push_back(id - '0');
         }
       }
-    }
-    else {
+    } else {
       std::cout << "comando invalido para o anel!\n";
       exit(-3);
     }
@@ -468,8 +470,8 @@ void *Server::electionThread(void *args) {
     codificatePackage(packet_ack, ackStatus, std::to_string(1));
     neighbor_addr.sin_port = htons(_this->ring_sender_port_);
     n = sendto(_this->ring_socket_, packet_ack, strlen(packet), 0,
-                   (const struct sockaddr *)&neighbor_addr,
-                   sizeof(struct sockaddr_in));
+               (const struct sockaddr *)&neighbor_addr,
+               sizeof(struct sockaddr_in));
     if (n < 0) {
       _this->ui_.print(UiType::Error, "Failed to ack neighboor");
     }
@@ -486,14 +488,14 @@ void *Server::electionThread(void *args) {
       merging_list.clear();
       active_size = _this->active_list_.size();
       recv_list.push_back(_this->id_);
-     
+
       auto it = std::find(_this->active_list_.begin(),
                           _this->active_list_.end(), _this->id_);
       int id_position = it - _this->active_list_.begin();
       int original_id_position = id_position;
       int list_it = 0;
       id_position += 1;
-      
+
       while (list_it < active_size) {
         if (id_position == active_size)
           id_position = 0;
@@ -506,11 +508,11 @@ void *Server::electionThread(void *args) {
                                  merging_list.begin(), merging_list.end());
       std::cout << "i received an election!\n";
       std::cout << "im going to iterate over:\n";
-      for(int j = 0; j < _this->active_list_.size(); j++)
+      for (int j = 0; j < _this->active_list_.size(); j++)
         std::cout << _this->active_list_[j];
       std::cout << "im going to send:\n";
-      for(int j = 0; j < recv_list.size(); j++)
-	std::cout << recv_list[j] << "\n";
+      for (int j = 0; j < recv_list.size(); j++)
+        std::cout << recv_list[j] << "\n";
     }
 
     if (_this->ring_status_ == CmdType::NormalRing) {
@@ -523,9 +525,7 @@ void *Server::electionThread(void *args) {
         _this->sendLeaderToFrontEnds();
       }
     }
-    
 
-    
     package_content = std::to_string(_this->id_);
     package_content.append(" ");
     if (_this->ring_status_ == CmdType::ElectLeader) {
@@ -560,7 +560,8 @@ void *Server::electionThread(void *args) {
         _this->active_list_.clear();
         _this->active_list_.push_back(_this->id_);
       } else {
-        neighbor_addr.sin_port = htons(_this->servers_ports_[next] + _this->port_offset_);
+        neighbor_addr.sin_port =
+            htons(_this->servers_ports_[next] + _this->port_offset_);
         n = sendto(_this->ring_socket_, packet, strlen(packet), 0,
                    (const struct sockaddr *)&neighbor_addr,
                    sizeof(struct sockaddr_in));
@@ -572,16 +573,18 @@ void *Server::electionThread(void *args) {
         if (setsockopt(_this->ring_socket_, SOL_SOCKET, SO_RCVTIMEO,
                        &socket_time, sizeof(socket_time)) < 0)
           std::cout << "Failed to set the socket timeout\n";
-	memset(packet_ack, 0, BUFFER_SIZE);
-        int n = recvfrom(_this->ring_socket_, packet_ack, BUFFER_SIZE, 0,
-                        (struct sockaddr *)&(neighbor_addr), &(neighbor_length));
+        memset(packet_ack, 0, BUFFER_SIZE);
+        int n =
+            recvfrom(_this->ring_socket_, packet_ack, BUFFER_SIZE, 0,
+                     (struct sockaddr *)&(neighbor_addr), &(neighbor_length));
         if (n < 0) {
           _this->ui_.print(UiType::Error, "Timeout reached! no contact!\n");
-	  _this->ui_.print(UiType::Info, "No Contact!");
+          _this->ui_.print(UiType::Info, "No Contact!");
         } else {
-          std::vector<std::string> decoded_packet = decodificatePackage(packet_ack);
+          std::vector<std::string> decoded_packet =
+              decodificatePackage(packet_ack);
           std::string received_command = decoded_packet[0];
-          if(received_command == "ring_ack")
+          if (received_command == "ring_ack")
             made_contact = true;
         }
 
@@ -589,6 +592,16 @@ void *Server::electionThread(void *args) {
           std::vector<int>::iterator it = std::find(
               _this->active_list_.begin(), _this->active_list_.end(), next);
           _this->active_list_.erase(it);
+
+          if (_this->ring_status_ != CmdType::ElectLeader) {
+            package_content = std::to_string(_this->id_);
+            package_content.append(" ");
+            for (int active_id : _this->active_list_) {
+              package_content.append(std::to_string(active_id));
+              package_content.append(" ");
+            }
+            codificatePackage(packet, _this->ring_status_, package_content);
+          }
 
           if (next == _this->primary_id_ ||
               _this->ring_status_ == CmdType::FindLeader) {
@@ -600,7 +613,9 @@ void *Server::electionThread(void *args) {
             package_content.append(std::to_string(_this->id_));
             package_content.append("\n");
             codificatePackage(packet, _this->ring_status_, package_content);
-	    std::cout << "the leader fell, im going to send the following packet: " << packet << "\n";
+            std::cout
+                << "the leader fell, im going to send the following packet: "
+                << packet << "\n";
           }
         }
       }
@@ -644,7 +659,6 @@ void Server::createConnection(int id) {
            sizeof(struct sockaddr)) < 0)
     ui_.print(UiType::Error,
               "Cannot perform binding on server " + std::to_string(id_) + ".");
-  
 
   ring_address_.sin_family = AF_INET;
   ring_address_.sin_port = htons(servers_ports_[id_] + port_offset_);
@@ -653,8 +667,8 @@ void Server::createConnection(int id) {
 
   if (bind(ring_socket_, (struct sockaddr *)&ring_address_,
            sizeof(struct sockaddr)) < 0)
-    ui_.print(UiType::Error, "Cannot perform binding for ring on server " + std::to_string(id_) + ".");
-
+    ui_.print(UiType::Error, "Cannot perform binding for ring on server " +
+                                 std::to_string(id_) + ".");
 
   sem_init(&sem_full_, 0, 0);
   pthread_mutex_init(&lock_, NULL);
@@ -827,12 +841,12 @@ void Server::sendLeaderToNewServer(int id) {
   new_server_address.sin_port = htons(port);
 
   char packet[BUFFER_SIZE];
-  codificatePackage(packet, CmdType::SetLeader,
-                    std::to_string(primary_id_));
-  int n =
-      sendto(socket_, packet, strlen(packet), 0,
-              (const struct sockaddr *)&new_server_address, sizeof(struct sockaddr_in));
+  codificatePackage(packet, CmdType::SetLeader, std::to_string(primary_id_));
+  int n = sendto(socket_, packet, strlen(packet), 0,
+                 (const struct sockaddr *)&new_server_address,
+                 sizeof(struct sockaddr_in));
   if (n < 0) {
-    ui_.print(UiType::Error, "Failed to send leader ID to new server " + std::to_string(id) + ".");
+    ui_.print(UiType::Error, "Failed to send leader ID to new server " +
+                                 std::to_string(id) + ".");
   }
 }

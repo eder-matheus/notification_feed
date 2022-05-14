@@ -53,8 +53,7 @@ CmdType ringIter(int id, std::vector<int> recv_list, CmdType type) {
     if (recv_list[0] == id) {
       std::cout << "returning normal ring...\n";
       new_type = CmdType::NormalRing;
-    }
-    else {
+    } else {
       std::cout << "returning find leader...\n";
       new_type = type;
     }
@@ -64,8 +63,7 @@ CmdType ringIter(int id, std::vector<int> recv_list, CmdType type) {
     if (recv_list[0] == id) {
       std::cout << "returning find leader...\n";
       new_type = CmdType::FindLeader;
-    }
-    else {
+    } else {
       std::cout << "returning elect ring...\n";
       new_type = type;
     }
