@@ -519,6 +519,9 @@ void *Server::electionThread(void *args) {
     if (_this->ring_status_ == CmdType::FindLeader) {
       _this->active_list_ = recv_list;
       _this->primary_id_ = electPrimary(_this->active_list_);
+      if (_this->primary_id_ == _this->id_) {
+        _this->sendLeaderToFrontEnds();
+      }
     }
     
 
